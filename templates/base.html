@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AportAR{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ asset_version('style.css') }}">
+</head>
+<body data-user-id="{{ session.get('user_id', 0) }}">
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <a href="{{ url_for('dashboard') }}" class="logo" style="text-decoration: none; color: inherit;">
+                <h2>AportAR</h2>
+            </a>
+            
+            <nav class="nav-menu">
+                <!-- Donaciones -->
+                <div class="menu-item">
+                    <div class="menu-header">
+                        <span>Donaciones</span>
+                    </div>
+                    <div class="submenu">
+                        <a href="/donaciones/publicar">Publicar donación</a>
+                        <a href="/donaciones/ver">Ver donaciones</a>
+                    </div>
+                </div>
+
+                <!-- Servicios -->
+                <div class="menu-item">
+                    <div class="menu-header">
+                        <span>Servicios</span>
+                    </div>
+                    <div class="submenu">
+                        <a href="/servicios/publicar">Ofrecer servicio</a>
+                        <a href="/servicios/ver">Ver servicios</a>
+                    </div>
+                </div>
+
+                <!-- Ayuda -->
+                <div class="menu-item">
+                    <div class="menu-header">
+                        <span>Ayuda</span>
+                    </div>
+                    <div class="submenu">
+                        <a href="/ayuda/solicitar">Solicitar ayuda</a>
+                        <a href="/ayuda/ver">Ver solicitudes</a>
+                    </div>
+                </div>
+
+                <!-- Busqueda -->
+                <div class="menu-item single">
+                    <a href="/busqueda">
+                        <span>Búsqueda Avanzada</span>
+                    </a>
+                </div>
+
+                <!-- Perfil -->
+                <div class="menu-item single">
+                    <a href="/perfil">
+                        <span>Mi Perfil</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="bottom-menu">
+                <div class="menu-item single">
+                    <a href="{{ url_for('logout') }}" onclick="return confirm('¿Estás seguro que querés cerrar sesión?');">
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <div class="top-header">
+                <div class="user-profile">
+                    <div class="user-info">
+                        {% if session.get('username') %}
+                            <a href="/mensajes" class="notificaciones" title="Ver mensajes" style="display:flex; align-items:center; gap:4px; color:#000; text-decoration:none; font-weight:700;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <path d="M22 6l-10 7L2 6"></path>
+                                </svg>
+                                <span id="cantidad-mensajes" class="badge-no-leidos" style="display:none;">0</span>
+                            </a>
+
+                            <a href="/perfil" style="display:flex; align-items:center; gap:8px; color:inherit; text-decoration:none;" title="Ir a mi perfil">
+                                <div class="avatar" id="avatar-header">
+                                    {% if usuario_actual and usuario_actual.foto_perfil %}
+                                        <img src="{{ url_for('static', filename='uploads/' + usuario_actual.foto_perfil) }}" alt="Avatar">
+                                    {% else %}
+                                        {{ session.username[0].upper() }}
+                                    {% endif %}
+                                </div>
+
+                                <span class="username">
+                                    {{ session.username }}
+                                </span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}?v={{ asset_version('script.js') }}"></script>
+
+    <!-- Visor de imagen completa -->
+    <div id="modal-imagen" class="modal-imagen-overlay" onclick="cerrarImagenCompleta()">
+        <span class="modal-imagen-cerrar" onclick="cerrarImagenCompleta()">&times;</span>
+        <img id="modal-imagen-img" src="" alt="Imagen completa">
+    </div>
+
+    <!-- edicion (donaciones, servicios, ayuda) -->
+    <div id="modal-edicion" class="modal-edicion-overlay">
+        <div class="modal-edicion-box" id="modal-edicion-box" onclick="event.stopPropagation()">
+            <span class="modal-edicion-cerrar" onclick="cerrarModalEdicion()">&times;</span>
+            <div id="modal-edicion-contenido"></div>
+        </div>
+    </div>
+
+    <!-- Detalle de publicación: se abre a pantalla completa ARRIBA de la página
+         actual (sin navegar) y al cerrarse simplemente se oculta, dejando al
+         usuario exactamente donde estaba navegando. -->
+    <div id="modal-detalle-overlay" class="modal-detalle-overlay" onclick="cerrarModalDetalle()">
+        <div id="modal-detalle-contenido" class="modal-detalle-contenido" onclick="event.stopPropagation()"></div>
+    </div>
+
+    <!-- Chat flotante de "Contactar": burbuja fija en la esquina, SIN overlay
+         de fondo. El resto del sitio queda totalmente interactivo mientras
+         está abierta (se puede seguir navegando, scrolleando, etc.). -->
+    <div id="chat-flotante" class="chat-flotante">
+        <div class="chat-flotante-header">
+            <div class="chat-flotante-header-info">
+                <strong id="chat-flotante-nombre"></strong>
+            </div>
+            <button type="button" class="chat-flotante-cerrar" onclick="cerrarChatFlotante()">&times;</button>
+        </div>
+        <div id="chat-flotante-mensajes" class="chat-flotante-mensajes"></div>
+        <div class="chat-flotante-input-row">
+            <textarea id="chat-flotante-input" rows="1" placeholder="Escribí tu mensaje..."></textarea>
+            <button type="button" onclick="enviarMensajeChatFlotante()">Enviar</button>
+        </div>
+    </div>
+</body>
+</html>

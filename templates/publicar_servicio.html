@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Ofrecer Servicio - AportAR{% endblock %}
+
+{% block content %}
+<h2 class="titulo-subrayado">Ofrecer Servicio</h2>
+<form id="servicio-form">
+    <input type="text" id="titulo" placeholder="Título del servicio" required>
+    <textarea id="descripcion" placeholder="Descripción del servicio" required></textarea>
+
+    <div class="mb-3">
+        <label for="ubicacion" class="form-label">Distrito</label>
+        <select class="form-select" id="ubicacion" name="ubicacion" required>
+            <option value="" disabled {% if not usuario.distrito %}selected{% endif %}>Selecciona tu distrito</option>
+            {% for d in distritos %}
+            <option value="{{ d }}" {% if d == usuario.distrito %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="categoria" class="form-label">Categoría</label>
+        <select class="form-select" id="categoria" name="categoria" required>
+            <option value="" disabled selected>Selecciona una categoría</option>
+            {% for c in categorias %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="contacto" class="form-label">Información de contacto</label>
+        <input type="text" class="form-control" id="contacto"
+               value="{{ usuario.telefono or '' }}" readonly
+               placeholder="No tenés un teléfono cargado en tu perfil">
+    </div>
+    <input type="file" id="imagen" accept="image/*">
+    <button type="button" onclick="publicarServicio()">Publicar Servicio</button>
+</form>
+{% endblock %}

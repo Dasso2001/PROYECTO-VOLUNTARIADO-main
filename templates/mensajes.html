@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Mensajes - AportAR{% endblock %}
+
+{% block content %}
+<div class="mensajes-page">
+<h2>Mis Mensajes</h2>
+
+<div class="mensajes-categorias">
+    <div class="categoria-mensajes" id="categoria-donacion">
+        <h3>Donaciones</h3>
+        <div id="lista-usuarios-donacion"></div>
+    </div>
+    <div class="categoria-mensajes" id="categoria-servicio">
+        <h3>Servicios</h3>
+        <div id="lista-usuarios-servicio"></div>
+    </div>
+    <div class="categoria-mensajes" id="categoria-ayuda">
+        <h3>Ayuda</h3>
+        <div id="lista-usuarios-ayuda"></div>
+    </div>
+    <div class="categoria-mensajes categoria-chat-abierto" id="panel-chat-abierto">
+        <div id="chat-abierto-contenido"></div>
+    </div>
+</div>
+</div>
+{% endblock %}

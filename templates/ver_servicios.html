@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Servicios - AportAR{% endblock %}
+
+{% block content %}
+<div class="ver-page">
+<h2>Servicios Disponibles</h2>
+<div class="filtros-bar">
+    <div class="filtro-grupo filtro-buscador">
+        <label for="buscador-servicios">Buscar</label>
+        <input type="text" id="buscador-servicios" class="buscador-input" placeholder="Buscar servicios...">
+    </div>
+    <div class="filtro-grupo">
+        <label for="filtro-distrito-servicios">Distrito</label>
+        <select id="filtro-distrito-servicios">
+            <option value="">Todos los distritos</option>
+            {% for d in distritos %}
+            <option value="{{ d }}" {% if d == usuario.distrito %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filtro-grupo">
+        <label for="filtro-categoria-servicios">Categoría</label>
+        <select id="filtro-categoria-servicios">
+            <option value="">Todas las categorías</option>
+            {% for c in categorias %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filtro-grupo">
+        <label for="orden-servicios">Ordenar</label>
+        <select id="orden-servicios">
+            <option value="recientes">Más recientes primero</option>
+            <option value="antiguas">Más antiguas primero</option>
+        </select>
+    </div>
+</div>
+
+<div class="ver-layout">
+    <section class="panel-lista">
+        <div class="panel-lista-inner">
+            <h3>Servicios de vecinos</h3>
+            <div id="lista-servicios"></div>
+        </div>
+        <div class="detalle-publicacion-box"></div>
+    </section>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Publicar Donación - AportAR{% endblock %}
+
+{% block content %}
+<h2 class="titulo-subrayado">Publicar Donación</h2>
+<form id="donacion-form">
+    <input type="text" id="titulo" placeholder="Título de la donación" required>
+    <textarea id="descripcion" placeholder="Descripción detallada" required></textarea>
+    <div class="mb-3">
+        <label for="ubicacion" class="form-label">Distrito</label>
+        <select class="form-select" id="ubicacion" name="ubicacion" required>
+            <option value="" disabled {% if not usuario.distrito %}selected{% endif %}>Selecciona tu distrito</option>
+            {% for d in distritos %}
+            <option value="{{ d }}" {% if d == usuario.distrito %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="categoria" class="form-label">Categoría</label>
+        <select class="form-select" id="categoria" name="categoria" required>
+            <option value="" disabled selected>Selecciona una categoría</option>
+            {% for c in categorias %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <input type="file" id="imagen" accept="image/*">
+    <button type="button" onclick="publicar()">Publicar Donación</button>
+</form>
+{% endblock %}

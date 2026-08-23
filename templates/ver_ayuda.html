@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Solicitudes de Ayuda - AportAR{% endblock %}
+
+{% block content %}
+<div class="ver-page">
+<h2>Solicitudes de Ayuda</h2>
+<div class="filtros-bar">
+    <div class="filtro-grupo filtro-buscador">
+        <label for="buscador-ayuda">Buscar</label>
+        <input type="text" id="buscador-ayuda" class="buscador-input" placeholder="Buscar solicitudes de ayuda...">
+    </div>
+    <div class="filtro-grupo">
+        <label for="filtro-distrito-ayuda">Distrito</label>
+        <select id="filtro-distrito-ayuda">
+            <option value="">Todos los distritos</option>
+            {% for d in distritos %}
+            <option value="{{ d }}" {% if d == usuario.distrito %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filtro-grupo">
+        <label for="filtro-categoria-ayuda">Categoría</label>
+        <select id="filtro-categoria-ayuda">
+            <option value="">Todas las categorías</option>
+            {% for c in categorias %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filtro-grupo">
+        <label for="orden-ayuda">Ordenar</label>
+        <select id="orden-ayuda">
+            <option value="recientes">Más recientes primero</option>
+            <option value="antiguas">Más antiguas primero</option>
+        </select>
+    </div>
+    <div class="filtro-grupo">
+        <label for="filtro-urgente-ayuda">Urgencia</label>
+        <label class="filtro-urgente-toggle">
+            <input type="checkbox" id="filtro-urgente-ayuda">
+            Solo urgentes
+        </label>
+    </div>
+</div>
+
+<div class="ver-layout">
+    <section class="panel-lista">
+        <div class="panel-lista-inner">
+            <h3>Solicitudes de vecinos</h3>
+            <div id="lista-ayuda"></div>
+        </div>
+        <div class="detalle-publicacion-box"></div>
+    </section>
+</div>
+</div>
+{% endblock %}

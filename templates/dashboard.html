@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AportAR{% endblock %}
+
+{% block content %}
+<div class="ver-page dashboard-page">
+    <div class="welcome-message dashboard-welcome">
+        <h1>¡Bienvenido a AportAR{% if usuario %}, {{ usuario.username }}{% endif %}!</h1>
+        <p>Tu plataforma solidaria de intercambio local</p>
+    </div>
+
+    <div class="dashboard-resumen">
+        <div class="panel-impacto dashboard-panel-impacto">
+            <h3>Impacto de Donaciones</h3>
+            <p>Actualmente hay <strong>{{ total_donaciones }}</strong> donaciones abiertas circulando en la red.</p>
+            <span class="impacto-subtitulo">Donaciones con más stock</span>
+            {% if top_categorias %}
+            <ul class="impacto-top-lista">
+                {% for categoria, cantidad in top_categorias %}
+                <li><span>{{ categoria }}</span><strong>{{ cantidad }}</strong></li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="sin-estadisticas">No hay estadísticas aún.</p>
+            {% endif %}
+            <a href="{{ url_for('ver_donaciones') }}" class="dashboard-panel-boton">Ver donaciones</a>
+        </div>
+
+        <div class="panel-impacto dashboard-panel-impacto">
+            <h3>Red de Oficios</h3>
+            <p>Contamos con <strong>{{ total_profesionales }}</strong> profesionales y vecinos ofreciendo su conocimiento de forma solidaria.</p>
+            <span class="impacto-subtitulo">Oficios más ofrecidos</span>
+            {% if top_oficios %}
+            <ul class="impacto-top-lista">
+                {% for oficio, cantidad in top_oficios %}
+                <li><span>{{ oficio }}</span><strong>{{ cantidad }}</strong></li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="sin-estadisticas">No hay oficios registrados.</p>
+            {% endif %}
+            <a href="{{ url_for('ver_servicios') }}" class="dashboard-panel-boton">Ver servicios</a>
+        </div>
+
+        <div class="panel-impacto dashboard-panel-impacto">
+            <h3>Centro de Ayuda</h3>
+            <p>Hay <strong>{{ total_solicitudes }}</strong> solicitudes de ayuda activas. Tu colaboración puede cambiar la realidad de una familia hoy.</p>
+            <span class="impacto-subtitulo">Distritos con más demandas</span>
+            {% if top_distritos %}
+            <ul class="impacto-top-lista">
+                {% for distrito, cantidad in top_distritos %}
+                <li><span>{{ distrito }}</span><strong>{{ cantidad }}</strong></li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="sin-estadisticas">No hay solicitudes registradas.</p>
+            {% endif %}
+            <a href="{{ url_for('ver_ayuda') }}" class="dashboard-panel-boton">Ver ayuda</a>
+        </div>
+    </div>
+
+    <div class="ver-layout">
+        <section class="panel-lista">
+            <div class="panel-lista-inner">
+                <h3>Últimas publicaciones</h3>
+                <div id="lista-publicaciones" class="lista-publicaciones"></div>
+            </div>
+            <div class="detalle-publicacion-box"></div>
+        </section>
+    </div>
+</div>
+{% endblock %}

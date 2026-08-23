@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Búsqueda Avanzada{% endblock %}
+
+{% block content %}
+<div class="ver-page">
+<h2>Búsqueda Avanzada</h2>
+<div class="filtros-bar">
+    <div class="filtro-grupo filtro-buscador">
+        <label for="buscador-global">Buscar</label>
+        <input type="text" id="buscador-global" class="buscador-input" placeholder="Buscar por título, descripción, categoría o usuario...">
+    </div>
+    <div class="filtro-grupo">
+        <label for="filtro-distrito-global">Distrito</label>
+        <select id="filtro-distrito-global">
+            <option value="">Todos los distritos</option>
+            {% for d in distritos %}
+            <option value="{{ d }}" {% if d == usuario.distrito %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filtro-grupo">
+        <label for="orden-global">Ordenar</label>
+        <select id="orden-global">
+            <option value="recientes">Más recientes primero</option>
+            <option value="antiguas">Más antiguas primero</option>
+        </select>
+    </div>
+</div>
+
+<div class="ver-layout">
+    <section class="panel-lista">
+        <div class="panel-lista-inner">
+            <h3>Publicaciones encontradas</h3>
+            <div id="lista-publicaciones" class="lista-publicaciones"></div>
+        </div>
+        <div class="detalle-publicacion-box"></div>
+    </section>
+</div>
+</div>
+{% endblock %}

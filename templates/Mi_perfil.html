@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil - AportAR{% endblock %}
+
+{% block content %}
+<div class="perfil-page">
+<h2>Mi Perfil</h2>
+
+<div class="perfil-layout">
+    <div class="perfil-tabs">
+        <button class="perfil-tab activo" onclick="mostrarTabPerfil('info', this)">Información personal</button>
+        <button class="perfil-tab" onclick="mostrarTabPerfil('seguridad', this)">Contraseña y seguridad</button>
+        <button class="perfil-tab" onclick="mostrarTabPerfil('historial', this)">Historial</button>
+        <button class="perfil-tab" onclick="mostrarTabPerfil('publicaciones', this)" id="perfil-tab-publicaciones">Mis publicaciones</button>
+    </div>
+
+    <div class="perfil-contenido">
+
+        <!-- Información personal -->
+        <div id="tab-info" class="perfil-panel">
+            <h3>Información personal</h3>
+            <form id="form-info-personal">
+
+                <div class="perfil-avatar-seccion">
+                    <div class="perfil-avatar-circulo" id="perfil-avatar-circulo">
+                        {% if usuario.foto_perfil %}
+                            <img src="{{ url_for('static', filename='uploads/' + usuario.foto_perfil) }}" id="perfil-avatar-img" alt="Foto de perfil">
+                        {% else %}
+                            <svg id="perfil-avatar-svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                        {% endif %}
+                    </div>
+                    <div class="perfil-avatar-acciones">
+                        <label for="input-foto-perfil" class="perfil-btn-subir">Cargar foto</label>
+                        <input type="file" id="input-foto-perfil" name="foto_perfil" accept="image/*" style="display:none;">
+                        <p class="perfil-avatar-info">Formatos aceptados: JPG o PNG. Máx 2MB.</p>
+                    </div>
+                </div>
+
+                <div class="perfil-form-row">
+                    <div class="perfil-form-group">
+                        <label>Nombre</label>
+                        <input type="text" name="nombre" value="{{ usuario.nombre }}" required>
+                    </div>
+                    <div class="perfil-form-group">
+                        <label>Apellido</label>
+                        <input type="text" name="apellido" value="{{ usuario.apellido }}" required>
+                    </div>
+                </div>
+
+                <label>DNI</label>
+                <input type="text" name="dni" value="{{ usuario.dni }}" readonly style="background-color:#eee; cursor:not-allowed;">
+
+                <label>Email</label>
+                <input type="email" name="email" value="{{ usuario.email }}" required>
+
+                <label>Teléfono</label>
+                <input type="text" name="telefono" value="{{ usuario.telefono or '' }}" placeholder="Ej: 341 1234567">
+
+                <label>Distrito</label>
+                <select name="distrito" required>
+                    {% for d in ["Norte", "Noroeste", "Centro", "Oeste", "Sudoeste", "Sur"] %}
+                        <option value="{{ d }}" {% if usuario.distrito == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="button" onclick="guardarInfoPersonal()">Guardar cambios</button>
+                <button type="button" class="perfil-btn-baja" onclick="darDeBajaCuenta()">Baja de Cuenta</button>
+            </form>
+        </div>
+
+        <!-- Contraseña y seguridad -->
+        <div id="tab-seguridad" class="perfil-panel" style="display:none;">
+            <h3>Contraseña y seguridad</h3>
+            <form id="form-cambiar-contrasena">
+                <label>Contraseña actual</label>
+                <input type="password" name="actual" required>
+
+                <label>Nueva contraseña</label>
+                <input type="password" name="nueva" required>
+
+                <label>Confirmar nueva contraseña</label>
+                <input type="password" name="confirmar" required>
+
+                <button type="button" onclick="guardarContrasena()">Cambiar contraseña</button>
+            </form>
+        </div>
+
+        <!-- Historial -->
+        <div id="tab-historial" class="perfil-panel" style="display:none;">
+            <h3>Historial</h3>
+            <div id="lista-historial" class="historial-caja"></div>
+        </div>
+
+        <!-- Mis publicaciones -->
+        <div id="tab-publicaciones" class="perfil-panel" style="display:none;">
+            <h3>Mis publicaciones</h3>
+
+            <div class="filtro-publicaciones">
+                <button class="filtro-btn activo" id="filtro-todas" onclick="filtrarMisPublicaciones('todas', this)">Todas</button>
+                <button class="filtro-btn" id="filtro-activas" onclick="filtrarMisPublicaciones('activas', this)">Activas</button>
+                <button class="filtro-btn" id="filtro-concretadas" onclick="filtrarMisPublicaciones('concretadas', this)">Concretadas</button>
+            </div>
+
+            <div class="mis-publicaciones-columnas">
+                <div class="mis-publicaciones-col">
+                    <h4>Donaciones</h4>
+                    <div id="mis-donaciones" class="mis-publicaciones-lista"></div>
+                </div>
+                <div class="mis-publicaciones-col">
+                    <h4>Servicios</h4>
+                    <div id="mis-servicios" class="mis-publicaciones-lista"></div>
+                </div>
+                <div class="mis-publicaciones-col">
+                    <h4>Ayuda</h4>
+                    <div id="mis-ayuda" class="mis-publicaciones-lista"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+{% endblock %}

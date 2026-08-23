@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.titulo }} - AportAR{% endblock %}
+
+{% block content %}
+<div class="detalle-pagina">
+    <div class="detalle-pagina-layout">
+        <div class="detalle-pagina-card">
+            <a href="{{ volver_url }}" class="detalle-pagina-cerrar" title="Volver" aria-label="Volver">&times;</a>
+
+            <div class="detalle-pagina-imagen">
+                {% if item.imagen %}
+                <img src="{{ url_for('static', filename='uploads/' + item.imagen) }}" alt="{{ item.titulo }}">
+                {% elif tipo == 'donacion' %}
+                <img src="{{ url_for('static', filename='imagenes/default_donacion.webp') }}" alt="{{ item.titulo }}">
+                {% elif tipo == 'servicio' %}
+                <img src="{{ url_for('static', filename='imagenes/default_servicio.webp') }}" alt="{{ item.titulo }}">
+                {% else %}
+                <img src="{{ url_for('static', filename='imagenes/default_ayuda.webp') }}" alt="{{ item.titulo }}">
+                {% endif %}
+            </div>
+
+            <div class="detalle-pagina-info"
+                 data-tipo="{{ tipo }}"
+                 data-id="{{ item.id }}"
+                 data-user-id="{{ item.user_id }}"
+                 data-usuario="{{ item.usuario.username }}"
+                 data-titulo="{{ item.titulo }}"
+                 data-descripcion="{{ item.descripcion }}"
+                 data-ubicacion="{{ item.ubicacion }}"
+                 data-categoria="{{ item.categoria or '' }}"
+                 data-contacto="{{ item.contacto or '' }}"
+                 data-imagen="{{ item.imagen or '' }}"
+                 data-urgente="{{ 'true' if item.urgente else 'false' }}"
+                 data-concretada="{{ 'true' if item.concretada else 'false' }}">
+                <div class="detalle-pagina-titulo-row">
+                    <h2>{{ item.titulo }}</h2>
+                    <span class="chip-categoria">{{ item.categoria or etiqueta_tipo }}</span>
+                    {% if tipo == 'ayuda' and item.urgente %}
+                    <span class="badge-urgente">⚠ Urgente</span>
+                    {% endif %}
+                    {% if item.concretada %}
+                    <span class="badge-concretada">Concretada</span>
+                    {% endif %}
+                </div>
+
+                <div class="detalle-pagina-chips">
+                    <span class="chip-dato">📍 {{ item.ubicacion }}</span>
+                    {% if fecha_relativa %}
+                    <span class="chip-dato">🕒 {{ fecha_relativa }}</span>
+                    {% endif %}
+                    {% if item.contacto %}
+                    <span class="chip-dato">☎ {{ item.contacto }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="detalle-pagina-datos">
+                    <small><strong>Descripción:</strong> {{ item.descripcion }}</small>
+                </div>
+
+                <div class="detalle-pagina-usuario">
+                    <div class="detalle-pagina-usuario-avatar">
+                        {% if item.usuario.foto_perfil %}
+                        <img src="{{ url_for('static', filename='uploads/' + item.usuario.foto_perfil) }}" alt="{{ item.usuario.username }}">
+                        {% else %}
+                        {{ item.usuario.username[0].upper() }}
+                        {% endif %}
+                    </div>
+                    <div class="detalle-pagina-usuario-info">
+                        <strong>{{ item.usuario.username }}</strong>
+                        <small>{{ total_publicaciones_usuario }} publicaci{{ 'ón' if total_publicaciones_usuario == 1 else 'ones' }} en AportAR</small>
+                    </div>
+                    {% if not es_mia %}
+                    <div class="detalle-pagina-usuario-acciones">
+                        {% if item.usuario.email %}
+                        <a class="btn-correo" href="mailto:{{ item.usuario.email }}" title="Enviar un correo a {{ item.usuario.username }}" aria-label="Enviar un correo a {{ item.usuario.username }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <path d="m22 6-10 7L2 6"></path>
+                            </svg>
+                        </a>
+                        {% endif %}
+                        <button type="button" class="btn-contacto detalle-pagina-usuario-btn" title="Escribirle a {{ item.usuario.username }}"
+                            onclick="contactarDesdeDetalle(this)">
+                            Escribir
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if es_mia %}
+                <div class="tarjeta-boton detalle-publicacion-botones" style="margin-top:15px;">
+                    <button class="btn-contacto" onclick="marcarConcretadaDesdeDetalle(this)">
+                        {{ 'Marcar como no concretada' if item.concretada else 'Marcar como concretada' }}
+                    </button>
+                    <button class="btn-editar" onclick="editarDesdeDetalle(this)">
+                        Editar
+                    </button>
+                    <button class="btn-eliminar detalle-publicacion-btn-eliminar" onclick="eliminarDesdeDetalle(this)">
+                        Eliminar
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mas-publicaciones-usuario" id="mas-publicaciones-usuario"
+         data-usuario-id="{{ item.user_id }}"
+         data-tipo-actual="{{ tipo }}"
+         data-id-actual="{{ item.id }}">
+        <h3 class="mas-publicaciones-titulo">
+            Más publicaciones de {{ item.usuario.username }}
+        </h3>
+        <div class="mas-publicaciones-lista" id="mas-publicaciones-scroll"></div>
+    </div>
+</div>
+{% endblock %}

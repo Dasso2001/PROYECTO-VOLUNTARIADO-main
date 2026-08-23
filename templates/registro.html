@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+  <div class="container-fluid h-100">
+    <div class="row h-100">
+
+      <div class="col-md-6 left-side">
+        <img src="{{ url_for('static', filename='imagenes/logo.png') }}" alt="Logo" class="mb-3" style="max-width: 150px;">
+        <h1 class="fw-bold">AportAR</h1>
+        <p>Plataforma solidaria de intercambio local</p>
+      </div>
+
+      <div class="col-md-6 right-side" style="padding: 1rem;">
+        <div class="login-box compact shadow p-3 rounded bg-white">
+          <h2 class="text-center">Registro</h2>
+
+          <div id="registroMensaje">
+            {% if mensaje %}
+            <div class="alert alert-warning text-center">{{ mensaje }}</div>
+            {% endif %}
+          </div>
+
+          <form method="POST" action="{{ url_for('registro') }}" id="registroForm" autocomplete="off">
+            <div class="mb-3">
+              <label for="username" class="form-label">Nombre de Usuario</label>
+              <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="nombre" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombre" name="nombre" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="apellido" class="form-label">Apellido</label>
+              <input type="text" class="form-control" id="apellido" name="apellido" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="dni" class="form-label">DNI</label>
+              <input type="text" class="form-control" id="dni" name="dni" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="distrito" class="form-label">Distrito</label>
+                <select class="form-select" id="distrito" name="distrito" required>
+                    <option value="" disabled selected>Selecciona tu distrito</option>
+                    <option value="Norte">Norte</option>
+                    <option value="Noroeste">Noroeste</option>
+                    <option value="Centro">Centro</option>
+                    <option value="Oeste">Oeste</option>
+                    <option value="Sudoeste">Sudoeste</option>
+                    <option value="Sur">Sur</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="telefono" class="form-label">Teléfono</label>
+              <input type="tel" class="form-control" id="telefono" name="telefono" placeholder="Ej: 341 1234567">
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Contraseña</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-success w-100">Registrarse</button>
+          </form>
+
+          <div class="mt-3 text-center">
+            <a href="{{ url_for('login') }}">¿Ya tienes cuenta? Inicia sesión</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // al volver atras en el navegador no queden los datos viejos cargados en el formulario
+    window.addEventListener('pageshow', function () {
+      document.getElementById('registroForm').reset();
+    });
+
+    // no recargar toda la página cuando hay un error
+    const registroForm = document.getElementById('registroForm');
+    const registroMensaje = document.getElementById('registroMensaje');
+
+    registroForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = registroForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+
+      try {
+        const formData = new FormData(registroForm);
+        const resp = await fetch(registroForm.action, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData
+        });
+
+        const data = await resp.json();
+
+        if (data.ok) {
+          // Registro exitoso: recién ahí sí navegamos a login
+          window.location.href = data.redirect;
+          return;
+        }
+
+        // Muestra el error sin recargar el sitio
+        registroMensaje.innerHTML =
+          '<div class="alert alert-warning text-center">' + data.mensaje + '</div>';
+      } catch (err) {
+        registroMensaje.innerHTML =
+          '<div class="alert alert-danger text-center">Ocurrió un error, intentá nuevamente.</div>';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

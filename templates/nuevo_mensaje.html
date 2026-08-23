@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Mensaje - AportAR{% endblock %}
+
+{% block content %}
+<h2>Escribirle a {{ usuario.username }}</h2>
+
+<form method="POST" action="{{ url_for('enviar_mensaje') }}" class="form-mensaje">
+    <input type="hidden" name="receptor_id" value="{{ usuario.id }}">
+    <input type="hidden" name="origen" value="{{ request.referrer or '/donaciones/ver' }}">
+
+    <label for="asunto">Asunto</label>
+    <input type="text" id="asunto" name="asunto" placeholder="Ej: Consulta sobre tu publicación" required>
+
+    <label for="mensaje">Mensaje</label>
+    <textarea id="mensaje" name="mensaje" rows="6" placeholder="Escribí tu mensaje..." required></textarea>
+
+    <div class="tarjeta-boton">
+        <button type="submit" class="btn-contacto">Enviar mensaje</button>
+        <button type="button" onclick="history.back()" class="btn-eliminar">Cancelar</button>
+    </div>
+</form>
+{% endblock %}

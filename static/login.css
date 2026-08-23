@@ -1,0 +1,50 @@
+body,
+html {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.left-side {
+  background-color: #0b3574;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  color: white;
+}
+
+.left-side img {
+  max-width: 200px;
+  margin-bottom: 1rem;
+}
+
+.left-side h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.left-side p {
+  font-size: 1.1rem;
+  color: white;
+}
+
+.right-side {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-box h2 {
+  font-size: 1.7rem;
+}
+

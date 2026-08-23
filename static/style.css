@@ -690,7 +690,10 @@ button:hover {
   font-size: 16px;
 }
 
-.lista-publicaciones .sin-resultados {
+.lista-publicaciones .sin-resultados,
+#lista .sin-resultados,
+#lista-servicios .sin-resultados,
+#lista-ayuda .sin-resultados {
   grid-column: 1 / -1;
 }
 

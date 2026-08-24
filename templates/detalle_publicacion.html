@@ -73,12 +73,14 @@
                     {% if not es_mia %}
                     <div class="detalle-pagina-usuario-acciones">
                         {% if item.usuario.email %}
-                        <a class="btn-correo" href="mailto:{{ item.usuario.email }}" title="Enviar un correo a {{ item.usuario.username }}" aria-label="Enviar un correo a {{ item.usuario.username }}">
+                        <button type="button" class="btn-correo" title="Enviar un correo a {{ item.usuario.username }}" aria-label="Enviar un correo a {{ item.usuario.username }}"
+                            data-usuario-id="{{ item.usuario.id }}" data-usuario-nombre="{{ item.usuario.username }}" data-titulo="{{ item.titulo }}"
+                            onclick="contactarCorreoDesdeDetalle(this)">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="2" y="4" width="20" height="16" rx="2"></rect>
                                 <path d="m22 6-10 7L2 6"></path>
                             </svg>
-                        </a>
+                        </button>
                         {% endif %}
                         <button type="button" class="btn-contacto detalle-pagina-usuario-btn" title="Escribirle a {{ item.usuario.username }}"
                             onclick="contactarDesdeDetalle(this)">

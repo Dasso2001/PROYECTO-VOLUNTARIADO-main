@@ -31,21 +31,16 @@ app.config['MAIL_REMITENTE'] = os.environ.get('MAIL_REMITENTE', app.config['MAIL
 TOKEN_VALIDEZ_MINUTOS = 30
 
 
-def _enviar_email_recuperacion(destinatario, link):
-    asunto = "Recuperá tu contraseña - AportAR"
-    cuerpo = (
-        f"Recibimos una solicitud para restablecer tu contraseña.\n\n"
-        f"Hacé clic en el siguiente enlace (válido por {TOKEN_VALIDEZ_MINUTOS} minutos):\n"
-        f"{link}\n\n"
-        f"Si no fuiste vos quien lo solicitó, podés ignorar este mensaje."
-    )
+def _enviar_email(destinatario, asunto, cuerpo, reply_to=None):
+    """Envía un correo real por SMTP usando la configuración de MAIL_*.
+    Si no hay credenciales cargadas, simula el envío imprimiendo en consola
+    (útil para seguir probando sin un servidor de correo real)."""
 
-    # Si no hay credenciales de correo configuradas, se muestra el link en la consola
-    # para poder seguir probando el flujo sin tener un servidor de correo real.
     if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
         print("=" * 60)
         print(f"[EMAIL SIMULADO] Para: {destinatario}")
-        print(f"[EMAIL SIMULADO] Link de recuperación: {link}")
+        print(f"[EMAIL SIMULADO] Asunto: {asunto}")
+        print(f"[EMAIL SIMULADO] Cuerpo:\n{cuerpo}")
         print("=" * 60)
         return True
 
@@ -54,6 +49,8 @@ def _enviar_email_recuperacion(destinatario, link):
         mensaje['Subject'] = asunto
         mensaje['From'] = app.config['MAIL_REMITENTE']
         mensaje['To'] = destinatario
+        if reply_to:
+            mensaje['Reply-To'] = reply_to
         mensaje.set_content(cuerpo)
 
         with smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT']) as servidor:
@@ -62,8 +59,19 @@ def _enviar_email_recuperacion(destinatario, link):
             servidor.send_message(mensaje)
         return True
     except Exception as e:
-        print(f"Error al enviar el email de recuperación: {e}")
+        print(f"Error al enviar el email: {e}")
         return False
+
+
+def _enviar_email_recuperacion(destinatario, link):
+    asunto = "Recuperá tu contraseña - AportAR"
+    cuerpo = (
+        f"Recibimos una solicitud para restablecer tu contraseña.\n\n"
+        f"Hacé clic en el siguiente enlace (válido por {TOKEN_VALIDEZ_MINUTOS} minutos):\n"
+        f"{link}\n\n"
+        f"Si no fuiste vos quien lo solicitó, podés ignorar este mensaje."
+    )
+    return _enviar_email(destinatario, asunto, cuerpo)
 
 
 # Agrega las columnas del token de recuperación a bases de datos ya existentes
@@ -964,6 +972,45 @@ def eliminar_ayuda(id):
     db.session.delete(ayuda_item)
     db.session.commit()
     return jsonify({"mensaje": "Solicitud de ayuda eliminada con éxito"})
+
+@app.route("/api/enviar-correo", methods=["POST"])
+def enviar_correo_contacto():
+    if "user_id" not in session:
+        return jsonify({"exito": False, "error": "Tenés que iniciar sesión."}), 401
+
+    datos = request.get_json(silent=True) or {}
+    destinatario_id = datos.get("destinatario_id")
+    asunto = (datos.get("asunto") or "").strip()
+    mensaje_texto = (datos.get("mensaje") or "").strip()
+
+    if not destinatario_id or not mensaje_texto:
+        return jsonify({"exito": False, "error": "Faltan datos del mensaje."}), 400
+
+    remitente = User.query.get(session["user_id"])
+    destinatario = User.query.get(destinatario_id)
+
+    if not destinatario or not destinatario.email:
+        return jsonify({"exito": False, "error": "Ese usuario no tiene un correo registrado."}), 404
+
+    if not asunto:
+        asunto = f"{remitente.username} te contactó por AportAR"
+
+    publicacion_titulo = (datos.get("publicacion_titulo") or "").strip()
+    referencia = f"\n\nSobre la publicación: {publicacion_titulo}" if publicacion_titulo else ""
+
+    cuerpo = (
+        f"{remitente.username} ({remitente.email}) te escribió a través de AportAR:{referencia}\n\n"
+        f"\"{mensaje_texto}\"\n\n"
+        f"Podés responderle directamente a este correo."
+    )
+
+    enviado = _enviar_email(destinatario.email, asunto, cuerpo, reply_to=remitente.email)
+
+    if not enviado:
+        return jsonify({"exito": False, "error": "No se pudo enviar el correo. Probá de nuevo en un rato."}), 500
+
+    return jsonify({"exito": True})
+
 
 @app.route("/mensaje/enviar", methods=["POST"])
 def enviar_mensaje():

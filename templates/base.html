@@ -134,16 +134,29 @@
         </div>
     </div>
 
-    <!-- Detalle de publicación: se abre a pantalla completa ARRIBA de la página
-         actual (sin navegar) y al cerrarse simplemente se oculta, dejando al
-         usuario exactamente donde estaba navegando. -->
+    <!-- Detalle de publicación -->
     <div id="modal-detalle-overlay" class="modal-detalle-overlay" onclick="cerrarModalDetalle()">
         <div id="modal-detalle-contenido" class="modal-detalle-contenido" onclick="event.stopPropagation()"></div>
     </div>
 
-    <!-- Chat flotante de "Contactar": burbuja fija en la esquina, SIN overlay
-         de fondo. El resto del sitio queda totalmente interactivo mientras
-         está abierta (se puede seguir navegando, scrolleando, etc.). -->
+    <!-- Modal para mandar un correo real (sin depender de ninguna app de mail) -->
+    <div id="modal-correo" class="modal-edicion-overlay">
+        <div class="modal-edicion-box" id="modal-correo-box" onclick="event.stopPropagation()">
+            <span class="modal-edicion-cerrar" onclick="cerrarModalCorreo()">&times;</span>
+            <h3>Enviar un correo a <span id="modal-correo-nombre"></span></h3>
+            <div class="modal-correo-campo">
+                <input type="text" id="modal-correo-asunto" placeholder="Asunto">
+            </div>
+            <div class="modal-correo-campo">
+                <label for="modal-correo-mensaje">Mensaje</label>
+                <textarea id="modal-correo-mensaje" rows="5" placeholder="Escribí tu mensaje..."></textarea>
+            </div>
+            <p id="modal-correo-estado" class="modal-correo-estado"></p>
+            <button type="button" class="btn-contacto" id="modal-correo-btn-enviar" onclick="enviarCorreoModal()">Enviar correo</button>
+        </div>
+    </div>
+
+    <!-- Chat flotante de "Contactar" -->
     <div id="chat-flotante" class="chat-flotante">
         <div class="chat-flotante-header">
             <div class="chat-flotante-header-info">

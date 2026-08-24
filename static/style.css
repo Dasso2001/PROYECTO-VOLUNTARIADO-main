@@ -1056,6 +1056,45 @@ button:hover {
   margin-bottom: 15px;
 }
 
+.modal-correo-campo {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-correo-campo label {
+  font-size: 0.85rem;
+  color: #cfd8e3;
+}
+
+#modal-correo input,
+#modal-correo textarea {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #b8cfef;
+  background-color: #d7e6ff;
+  color: #1b2a41;
+  font-family: inherit;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#modal-correo input::placeholder,
+#modal-correo textarea::placeholder {
+  color: #5b6b85;
+}
+
+.modal-correo-estado {
+  min-height: 18px;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.modal-correo-estado.error { color: #ff8080; }
+.modal-correo-estado.ok { color: #7fdf9f; }
+
 /* Modal genérico para ver contenido largo (ej. descripción completa) */
 .modal-detalle-overlay {
   display: none;

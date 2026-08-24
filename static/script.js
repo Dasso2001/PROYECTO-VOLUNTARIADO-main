@@ -259,12 +259,13 @@ function construirDetalleEmbebido(p) {
     const textoPublicaciones = `${cantidadPublicaciones} publicaci${cantidadPublicaciones === 1 ? "ón" : "ones"} en AportAR`;
 
     const botonCorreo = (!p.es_mia && p.usuario_email)
-        ? `<a class="btn-correo" href="mailto:${escapeApos(p.usuario_email)}" title="Enviar un correo a ${escapeApos(p.usuario)}" aria-label="Enviar un correo a ${escapeApos(p.usuario)}">
+        ? `<button type="button" class="btn-correo" title="Enviar un correo a ${escapeApos(p.usuario)}" aria-label="Enviar un correo a ${escapeApos(p.usuario)}"
+                onclick="abrirModalCorreo(${p.user_id}, '${escapeApos(p.usuario)}', '${escapeApos(p.titulo || "")}')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="4" width="20" height="16" rx="2"></rect>
                     <path d="m22 6-10 7L2 6"></path>
                 </svg>
-           </a>`
+           </button>`
         : "";
 
     const botonEscribir = p.es_mia
@@ -894,6 +895,79 @@ function cerrarModalEdicion() {
 
 // CONTACTAR: chat flotante
 let chatFlotanteActual = null;
+
+function contactarCorreoDesdeDetalle(boton) {
+    const d = boton.dataset;
+    abrirModalCorreo(parseInt(d.usuarioId, 10), d.usuarioNombre, d.titulo || null);
+}
+
+// Modal para mandar un correo real (sin depender de una app de mail instalada)
+let correoModalActual = null;
+
+function abrirModalCorreo(destinatarioId, nombreUsuario, publicacionTitulo) {
+    correoModalActual = { destinatarioId, publicacionTitulo: publicacionTitulo || null };
+
+    document.getElementById("modal-correo-nombre").textContent = nombreUsuario;
+    document.getElementById("modal-correo-asunto").value = "";
+    document.getElementById("modal-correo-mensaje").value = "";
+    const estado = document.getElementById("modal-correo-estado");
+    estado.textContent = "";
+    estado.className = "modal-correo-estado";
+
+    document.getElementById("modal-correo").classList.add("activo");
+}
+
+function cerrarModalCorreo() {
+    document.getElementById("modal-correo").classList.remove("activo");
+    correoModalActual = null;
+}
+
+function enviarCorreoModal() {
+    if (!correoModalActual) return;
+
+    const mensaje = document.getElementById("modal-correo-mensaje").value.trim();
+    const asunto = document.getElementById("modal-correo-asunto").value.trim();
+    const estado = document.getElementById("modal-correo-estado");
+    const boton = document.getElementById("modal-correo-btn-enviar");
+
+    if (!mensaje) {
+        estado.textContent = "Escribí un mensaje antes de enviar.";
+        estado.className = "modal-correo-estado error";
+        return;
+    }
+
+    boton.disabled = true;
+    estado.textContent = "Enviando...";
+    estado.className = "modal-correo-estado";
+
+    fetch("/api/enviar-correo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            destinatario_id: correoModalActual.destinatarioId,
+            asunto: asunto,
+            mensaje: mensaje,
+            publicacion_titulo: correoModalActual.publicacionTitulo
+        })
+    })
+        .then(res => res.json())
+        .then(data => {
+            boton.disabled = false;
+            if (data.exito) {
+                estado.textContent = "¡Correo enviado!";
+                estado.className = "modal-correo-estado ok";
+                setTimeout(cerrarModalCorreo, 1200);
+            } else {
+                estado.textContent = data.error || "No se pudo enviar el correo.";
+                estado.className = "modal-correo-estado error";
+            }
+        })
+        .catch(() => {
+            boton.disabled = false;
+            estado.textContent = "No se pudo enviar el correo. Revisá tu conexión.";
+            estado.className = "modal-correo-estado error";
+        });
+}
 
 function abrirModalContacto(receptorId, nombreUsuario, tipo, publicacionId, publicacionTitulo, publicacionImagen) {
     abrirChatFlotante(receptorId, nombreUsuario, tipo, publicacionId, publicacionTitulo, publicacionImagen);

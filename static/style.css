@@ -769,8 +769,9 @@ button:hover {
 
 .filtro-grupo select {
   height: 36px;
-  min-width: 0;
-  width: 130px;
+  min-width: 170px;
+  width: auto;
+  max-width: 100%;
   margin: 0;
   padding: 0 10px;
   border: 1px solid #ccc;

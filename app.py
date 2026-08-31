@@ -9,32 +9,30 @@ from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
-# Carga las variables definidas en el archivo .env (si existe) al entorno,
-# para que os.environ.get(...) pueda encontrarlas más abajo.
+# carga las variables de entorno 
 load_dotenv()
 
 app = Flask(__name__)
 
-# Configuracion base de datos
+# configuracion de la base de datos y clave secreta
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///aportar.db'
 app.config['SECRET_KEY'] = 'clave_secreta'
 db.init_app(app)
 
-# Configuracion del correo para el envio del link de recuperacion de contraseña.
+
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
 app.config['MAIL_REMITENTE'] = os.environ.get('MAIL_REMITENTE', app.config['MAIL_USERNAME'])
 
-# Cuánto dura el link de recuperación antes de vencer
+# duracion token 
 TOKEN_VALIDEZ_MINUTOS = 30
 
 
 def _enviar_email(destinatario, asunto, cuerpo, reply_to=None):
     """Envía un correo real por SMTP usando la configuración de MAIL_*.
-    Si no hay credenciales cargadas, simula el envío imprimiendo en consola
-    (útil para seguir probando sin un servidor de correo real)."""
+    Si no hay credenciales cargadas, simula el envío en consola."""
 
     if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
         print("=" * 60)
@@ -74,7 +72,7 @@ def _enviar_email_recuperacion(destinatario, link):
     return _enviar_email(destinatario, asunto, cuerpo)
 
 
-# Agrega las columnas del token de recuperación a bases de datos ya existentes
+
 def _migrar_columna_reset_token():
     from sqlalchemy import text
     with app.app_context():
@@ -95,8 +93,7 @@ def inject_asset_version():
             return 0
     return dict(asset_version=asset_version)
 
-# Convierte una fecha en un texto relativo tipo "hace 2 días", para mostrar
-# en la pantalla de detalle de una publicación sin exponer la hora exacta.
+
 def tiempo_relativo(fecha):
     if not fecha:
         return ""
@@ -119,15 +116,15 @@ def tiempo_relativo(fecha):
         return "Publicado hace 1 mes"
     return f"Publicado hace {meses} meses"
 
-# Distritos disponibles 
+
 DISTRITOS = ["Norte", "Noroeste", "Centro", "Oeste", "Sudoeste", "Sur"]
 
-# Categorias disponibles por seccion
+
 CATEGORIAS_DONACION = ["Ropa", "Calzado", "Muebles", "Electrónica", "Alimentos", "Libros", "Otros"]
 CATEGORIAS_SERVICIO = ["Plomería", "Electricista", "Jardinería", "Belleza", "Limpieza", "Clases particulares", "Otros"]
 CATEGORIAS_AYUDA = ["Emergencias", "Transporte", "Adultos mayores", "Mascotas", "Medicamentos", "Acompañamiento", "Otros"]
 
-# Agrega la columna 'categoria' a bases de datos ya existentes 
+
 def _migrar_columna_categoria():
     from sqlalchemy import text
     with app.app_context():
@@ -137,7 +134,7 @@ def _migrar_columna_categoria():
                 db.session.execute(text(f"ALTER TABLE {tabla} ADD COLUMN categoria VARCHAR(50)"))
         db.session.commit()
 
-# Agrega la columna 'foto_perfil' a bases de datos ya existentes 
+
 def _migrar_columna_foto_perfil():
     from sqlalchemy import text
     with app.app_context():
@@ -146,7 +143,7 @@ def _migrar_columna_foto_perfil():
             db.session.execute(text("ALTER TABLE users ADD COLUMN foto_perfil VARCHAR(200)"))
         db.session.commit()
 
-# Agrega la columna 'urgente' a la tabla de ayuda en bases de datos ya existentes
+
 def _migrar_columna_urgente():
     from sqlalchemy import text
     with app.app_context():
@@ -155,20 +152,20 @@ def _migrar_columna_urgente():
             db.session.execute(text("ALTER TABLE ayuda ADD COLUMN urgente BOOLEAN DEFAULT 0"))
         db.session.commit()
 
-# Hace disponible el usuario logueado 
+
 @app.context_processor
 def _inyectar_usuario_actual():
     if 'user_id' in session:
         return dict(usuario_actual=User.query.get(session['user_id']))
     return dict(usuario_actual=None)
 
-# Carpeta donde se guardan las imagenes
+
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-# Crear carpeta si no existe
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Registra un evento de actividad para mostrarlo en el historial
+
 def _registrar_actividad(user_id, categoria, titulo, evento):
     db.session.add(Actividad(
         user_id=user_id,
@@ -177,7 +174,7 @@ def _registrar_actividad(user_id, categoria, titulo, evento):
         evento=evento
     ))
 
-# Guarda una imagen subida con un nombre unico
+
 def _guardar_imagen(imagen):
     nombre_original = secure_filename(imagen.filename)
     extension = os.path.splitext(nombre_original)[1]
@@ -185,14 +182,14 @@ def _guardar_imagen(imagen):
     imagen.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
     return filename
 
-# Ruta inicio
+
 @app.route('/')
 @app.route('/inicio')
 def inicio():
-    # Renderiza inicio.html
+
     return render_template('inicio.html')
 
-# GET para mostrar formulario, POST para enviar datos
+
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
@@ -233,7 +230,7 @@ def registro():
             email=email,
             telefono=telefono
         )
-        nuevo_usuario.set_password(password)  # encriptar contraseña
+        nuevo_usuario.set_password(password)  
 
         db.session.add(nuevo_usuario)
         db.session.commit()
@@ -245,7 +242,7 @@ def registro():
         return redirect(url_for('login'))
 
     respuesta = make_response(render_template('registro.html'))
-    # Evita que el navegador guarde en cache el formulario con los datos ingresados,
+
     respuesta.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     respuesta.headers['Pragma'] = 'no-cache'
     return respuesta
@@ -271,15 +268,14 @@ def login():
     respuesta.headers['Pragma'] = 'no-cache'
     return respuesta
 
-# Paso 1: el usuario ingresa su email y se le envía el link de recuperación
+
 @app.route('/olvide-contrasena', methods=['GET', 'POST'])
 def olvide_contrasena():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         usuario = User.query.filter_by(email=email).first()
 
-        # Por seguridad, se muestra siempre el mismo mensaje exista o no el email,
-        # para no revelar qué correos están registrados en el sitio.
+
         if usuario:
             token = secrets.token_urlsafe(32)
             usuario.reset_token = token
@@ -295,7 +291,7 @@ def olvide_contrasena():
     return render_template('olvide_contrasena.html')
 
 
-# Paso 2: el usuario entra desde el link del email y define una nueva contraseña
+
 @app.route('/restablecer-contrasena/<token>', methods=['GET', 'POST'])
 def restablecer_contrasena(token):
     usuario = User.query.filter_by(reset_token=token).first()
@@ -318,7 +314,7 @@ def restablecer_contrasena(token):
             return render_template('restablecer_contrasena.html', token=token, error="Las contraseñas no coinciden")
 
         usuario.set_password(nueva)
-        # El token se invalida para que no se pueda volver a usar el mismo link
+
         usuario.reset_token = None
         usuario.reset_token_expira = None
         db.session.commit()
@@ -335,7 +331,7 @@ def dashboard():
         return redirect(url_for('login'))
     usuario = User.query.get(session['user_id'])
 
-    # Estadisticas para el panel "Impacto de Donaciones"
+    
     total_donaciones = Donacion.query.filter_by(concretada=False).count()
     top_categorias = (
         db.session.query(Donacion.categoria, db.func.count(Donacion.id).label("cantidad"))
@@ -346,13 +342,15 @@ def dashboard():
         .all()
     )
 
-    # Estadisticas para el panel "Red de Oficios"
+    
     total_profesionales = (
         db.session.query(Servicio.user_id)
         .filter(Servicio.concretada == False)
         .distinct()
         .count()
     )
+
+
     top_oficios = (
         db.session.query(Servicio.categoria, db.func.count(Servicio.id).label("cantidad"))
         .filter(Servicio.concretada == False, Servicio.categoria.isnot(None))
@@ -362,7 +360,7 @@ def dashboard():
         .all()
     )
 
-    # Estadisticas para el panel "Centro de Ayuda"
+
     total_solicitudes = Ayuda.query.filter_by(concretada=False).count()
     top_distritos = (
         db.session.query(Ayuda.ubicacion, db.func.count(Ayuda.id).label("cantidad"))
@@ -381,15 +379,15 @@ def dashboard():
         total_solicitudes=total_solicitudes, top_distritos=top_distritos
     )
 
-# Ruta para cerrar sesion
+
 @app.route('/logout')
 def logout():
-    # Limpia datos de sesion
+
     session.clear()
-    # Redirige al inicio
+
     return redirect(url_for('inicio'))
 
-# Rutas para mostrar formularios 
+
 @app.route('/donaciones/publicar')
 def publicar_donacion():
     if 'user_id' not in session:
@@ -403,7 +401,7 @@ def ver_donaciones():
         return redirect(url_for('login'))
     usuario = User.query.get(session['user_id'])
 
-    # Estadisticas para el panel "Impacto de Donaciones"
+    
     total_donaciones = Donacion.query.filter_by(concretada=False).count()
     top_categorias = (
         db.session.query(Donacion.categoria, db.func.count(Donacion.id).label("cantidad"))
@@ -432,7 +430,7 @@ def ver_servicios():
         return redirect(url_for('login'))
     usuario = User.query.get(session['user_id'])
 
-    # Estadisticas para el panel "Red de Oficios"
+    
     total_profesionales = (
         db.session.query(Servicio.user_id)
         .filter(Servicio.concretada == False)
@@ -460,7 +458,7 @@ def solicitar_ayuda():
     usuario = User.query.get(session['user_id'])
     return render_template('solicitar_ayuda.html', usuario=usuario, distritos=DISTRITOS, categorias=CATEGORIAS_AYUDA)
 
-# Pantalla de detalle completo de una publicación (donación, servicio o ayuda)
+
 @app.route('/publicacion/<tipo>/<int:id>')
 def ver_publicacion(tipo, id):
     if 'user_id' not in session:
@@ -480,7 +478,7 @@ def ver_publicacion(tipo, id):
     }
     etiquetas = {"donacion": "Donación", "servicio": "Servicio", "ayuda": "Ayuda"}
 
-    # Cantidad total de publicaciones activas de este usuario
+
     total_publicaciones_usuario = (
         Donacion.query.filter_by(user_id=item.user_id).count()
         + Servicio.query.filter_by(user_id=item.user_id).count()
@@ -504,7 +502,7 @@ def ver_ayuda():
         return redirect(url_for('login'))
     usuario = User.query.get(session['user_id'])
 
-    # Estadisticas para el panel "Centro de Ayuda"
+    
     total_solicitudes = Ayuda.query.filter_by(concretada=False).count()
     top_distritos = (
         db.session.query(Ayuda.ubicacion, db.func.count(Ayuda.id).label("cantidad"))
@@ -533,7 +531,7 @@ def perfil():
     usuario = User.query.get(session['user_id'])
     return render_template('Mi_perfil.html', active_section='perfil', usuario=usuario)
 
-# Obtener todas las donaciones
+
 @app.route("/api/donaciones", methods=["GET"])
 def obtener_donaciones():
     if 'user_id' not in session:
@@ -597,7 +595,7 @@ def eliminar_donacion(id):
     if don.user_id != session['user_id']:
         return jsonify({"error": "No tienes permiso para eliminar esta donación"}), 403
 
-    # Elimina imagen si existe
+
     if don.imagen:
         path_imagen = os.path.join(app.config["UPLOAD_FOLDER"], don.imagen)
         if os.path.exists(path_imagen):
@@ -624,7 +622,7 @@ def editar_donacion(id):
 
     imagen = request.files.get("imagen")
     if imagen and imagen.filename:
-        # Elimina imagen anterior si había
+
         if don.imagen:
             path_anterior = os.path.join(app.config["UPLOAD_FOLDER"], don.imagen)
             if os.path.exists(path_anterior):
@@ -637,7 +635,7 @@ def editar_donacion(id):
     db.session.commit()
     return jsonify({"mensaje": "Donación actualizada con éxito"})
 
-# Obtener servicios del usuario 
+
 @app.route("/api/servicios", methods=["GET"])
 def obtener_servicios():
     if 'user_id' not in session:
@@ -662,7 +660,7 @@ def obtener_servicios():
         for s in servicios
     ])
 
-# Crear servicio nuevo
+
 @app.route("/api/servicios", methods=["POST"])
 def crear_servicio():
     if 'user_id' not in session:
@@ -697,13 +695,13 @@ def crear_servicio():
 
     return jsonify({"mensaje": "Servicio publicado con éxito"})
 
-# ayudas solicitadas por usuario 
+
 @app.route("/api/ayuda", methods=["GET"])
 def obtener_ayuda():
     if 'user_id' not in session:
         return jsonify({"error": "No autorizado"}), 401
 
-    # Prioridad: urgentes primero, y dentro de cada grupo, las más recientes primero
+    
     ayudas = Ayuda.query.filter_by(concretada=False) \
         .order_by(Ayuda.urgente.desc(), Ayuda.fecha_creacion.desc()).all()
 
@@ -725,7 +723,7 @@ def obtener_ayuda():
         for a in ayudas
     ])
 
-# Crear solicitud de ayuda nueva
+
 @app.route("/api/ayuda", methods=["POST"])
 def crear_ayuda():
     if 'user_id' not in session:
@@ -827,7 +825,7 @@ def obtener_publicacion(tipo, id):
     if not item:
         return jsonify(None)
 
-    # Datos completos
+    
     return jsonify({
         "id": item.id,
         "tipo": tipo,
@@ -849,7 +847,7 @@ def todas_publicaciones():
     publicaciones = []
     user_id_actual = session.get("user_id")
 
-    # Cantidad de publicaciones activas por usuario
+    
     conteo_por_usuario = {}
     for modelo in (Donacion, Servicio, Ayuda):
         for user_id, cantidad in (
@@ -859,7 +857,7 @@ def todas_publicaciones():
         ):
             conteo_por_usuario[user_id] = conteo_por_usuario.get(user_id, 0) + cantidad
 
-    # Donaciones
+
     for d in Donacion.query.filter_by(concretada=False).all():
         publicaciones.append({
             "id": d.id,
@@ -878,7 +876,7 @@ def todas_publicaciones():
             "tipo": "donacion"
         })
         
-    # Servicios
+  
     for s in Servicio.query.filter_by(concretada=False).all():
         publicaciones.append({
             "id": s.id,
@@ -898,7 +896,7 @@ def todas_publicaciones():
             "tipo": "servicio"
         })
 
-    # Ayuda
+
     for a in Ayuda.query.filter_by(concretada=False).all():
         publicaciones.append({
             "id": a.id,
@@ -921,7 +919,7 @@ def todas_publicaciones():
 
     return jsonify(publicaciones)
 
-# editar solicitudes de Ayuda
+
 @app.route("/ayuda/editar/<int:id>", methods=["POST"])
 def editar_ayuda(id):
     if 'user_id' not in session:
@@ -952,7 +950,7 @@ def editar_ayuda(id):
     db.session.commit()
     return jsonify({"mensaje": "Solicitud de ayuda actualizada con éxito"})
 
-# eliminar solicitudes de Ayuda
+
 @app.route("/ayuda/eliminar/<int:id>", methods=["POST"])
 def eliminar_ayuda(id):
     if 'user_id' not in session:
@@ -962,7 +960,7 @@ def eliminar_ayuda(id):
     if ayuda_item.user_id != session['user_id']:
         return jsonify({"error": "No tienes permiso para eliminar esta solicitud de ayuda"}), 403
 
-    # Elimina la imagen del servidor
+
     if ayuda_item.imagen:
         path_imagen = os.path.join(app.config["UPLOAD_FOLDER"], ayuda_item.imagen)
         if os.path.exists(path_imagen):
@@ -1031,7 +1029,7 @@ def enviar_mensaje():
     db.session.add(nuevo)
     db.session.commit()
 
-    # Vuelve a la página desde donde se escribió el mensaje
+    
     destino = request.form.get("origen") or "/donaciones/ver"
     return redirect(destino)
 
@@ -1043,7 +1041,7 @@ def obtener_mensajes():
 
     user_id = session["user_id"]
 
-    # Trae los mensajes donde se participo
+
     mensajes = Mensaje.query.filter(
         (Mensaje.receptor_id == user_id) | (Mensaje.emisor_id == user_id)
     ).order_by(Mensaje.fecha.asc()).all()
@@ -1071,7 +1069,7 @@ def obtener_mensajes():
 
     return jsonify(resultado)
 
-# Marca un mensaje recibido como leído
+
 @app.route("/api/mensajes/leer/<int:id>", methods=["POST"])
 def marcar_mensaje_leido(id):
     if 'user_id' not in session:
@@ -1094,7 +1092,7 @@ def mensajes():
     return render_template("mensajes.html")
 
 
-# Elimina toda la conversación con un usuario dentro de una categoría
+
 @app.route("/mensaje/eliminar_conversacion", methods=["POST"])
 def eliminar_conversacion():
     if 'user_id' not in session:
@@ -1121,7 +1119,7 @@ def eliminar_conversacion():
     return jsonify({"mensaje": "Chat eliminado"})
 
 
-# PERFIL: informacion personal
+# informacion personal
 @app.route("/perfil/actualizar", methods=["POST"])
 def actualizar_perfil():
     if 'user_id' not in session:
@@ -1162,7 +1160,7 @@ def actualizar_perfil():
     })
 
 
-# PERFIL: contraseña y seguridad
+# contraseña y seguridad
 @app.route("/perfil/cambiar_contrasena", methods=["POST"])
 def cambiar_contrasena():
     if 'user_id' not in session:
@@ -1211,7 +1209,7 @@ def perfil_baja():
         return jsonify({"error": "Ocurrió un error al intentar dar de baja la cuenta."}), 500
 
 
-# PERFIL: mis publicaciones
+# mis publicaciones
 @app.route("/api/mis_publicaciones")
 def mis_publicaciones():
     if 'user_id' not in session:
@@ -1248,7 +1246,7 @@ def mis_publicaciones():
     })
 
 
-# Marcar como concretada / no concretada
+# concretada / no concretada
 def _marcar_concretada(modelo, id, categoria):
     item = modelo.query.get_or_404(id)
     if item.user_id != session['user_id']:
@@ -1280,7 +1278,7 @@ def concretar_ayuda(id):
     return _marcar_concretada(Ayuda, id, "ayuda")
 
 
-# PERFIL: historial (publicada / editada / concretada / eliminada)
+# historial (publicada / editada / concretada / eliminada)
 @app.route("/api/historial")
 def historial():
     if 'user_id' not in session:

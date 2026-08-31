@@ -15,9 +15,9 @@ class Mensaje(db.Model):
     mensaje = db.Column(db.Text, nullable=False)
     leido = db.Column(db.Boolean, default=False)
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
-    tipo = db.Column(db.String(20), nullable=True)  # "donacion", "servicio" o "ayuda"
+    tipo = db.Column(db.String(20), nullable=True)  
     publicacion_id = db.Column(db.Integer, nullable=True)
-    publicacion_titulo = db.Column(db.String(200), nullable=True)  # guardado directo para no depender de que la publicación siga existiendo
+    publicacion_titulo = db.Column(db.String(200), nullable=True)  
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -103,9 +103,9 @@ class Actividad(db.Model):
     __tablename__ = 'actividad'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    categoria = db.Column(db.String(20), nullable=False)  # "donacion", "servicio" o "ayuda"
+    categoria = db.Column(db.String(20), nullable=False) 
     titulo = db.Column(db.String(200), nullable=False)
-    evento = db.Column(db.String(20), nullable=False)  # "publicada", "editada", "concretada", "no_concretada", "eliminada"
+    evento = db.Column(db.String(20), nullable=False)  
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Ayuda(db.Model):

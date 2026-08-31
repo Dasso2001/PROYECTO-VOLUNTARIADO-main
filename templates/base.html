@@ -8,14 +8,14 @@
 </head>
 <body data-user-id="{{ session.get('user_id', 0) }}">
     <div class="container">
-        <!-- Sidebar -->
+        
         <div class="sidebar">
             <a href="{{ url_for('dashboard') }}" class="logo" style="text-decoration: none; color: inherit;">
                 <h2>AportAR</h2>
             </a>
             
             <nav class="nav-menu">
-                <!-- Donaciones -->
+                <!-- donaciones -->
                 <div class="menu-item">
                     <div class="menu-header">
                         <span>Donaciones</span>
@@ -26,7 +26,7 @@
                     </div>
                 </div>
 
-                <!-- Servicios -->
+                <!-- servicios -->
                 <div class="menu-item">
                     <div class="menu-header">
                         <span>Servicios</span>
@@ -37,7 +37,7 @@
                     </div>
                 </div>
 
-                <!-- Ayuda -->
+                <!-- ayuda -->
                 <div class="menu-item">
                     <div class="menu-header">
                         <span>Ayuda</span>
@@ -48,14 +48,14 @@
                     </div>
                 </div>
 
-                <!-- Busqueda -->
+                <!-- busqueda avanzada -->
                 <div class="menu-item single">
                     <a href="/busqueda">
                         <span>Búsqueda Avanzada</span>
                     </a>
                 </div>
 
-                <!-- Perfil -->
+                <!-- perfil -->
                 <div class="menu-item single">
                     <a href="/perfil">
                         <span>Mi Perfil</span>
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        <!-- Contenido principal -->
+        <!-- contenido principal -->
         <div class="main-content">
             <div class="top-header">
                 <div class="user-profile">
@@ -120,7 +120,7 @@
 
     <script src="{{ url_for('static', filename='script.js') }}?v={{ asset_version('script.js') }}"></script>
 
-    <!-- Visor de imagen completa -->
+    <!-- imagen completa -->
     <div id="modal-imagen" class="modal-imagen-overlay" onclick="cerrarImagenCompleta()">
         <span class="modal-imagen-cerrar" onclick="cerrarImagenCompleta()">&times;</span>
         <img id="modal-imagen-img" src="" alt="Imagen completa">
@@ -134,12 +134,12 @@
         </div>
     </div>
 
-    <!-- Detalle de publicación -->
+    <!-- publicacion -->
     <div id="modal-detalle-overlay" class="modal-detalle-overlay" onclick="cerrarModalDetalle()">
         <div id="modal-detalle-contenido" class="modal-detalle-contenido" onclick="event.stopPropagation()"></div>
     </div>
 
-    <!-- Modal para mandar un correo real (sin depender de ninguna app de mail) -->
+    <!--  mandar un correo -->
     <div id="modal-correo" class="modal-edicion-overlay">
         <div class="modal-edicion-box" id="modal-correo-box" onclick="event.stopPropagation()">
             <span class="modal-edicion-cerrar" onclick="cerrarModalCorreo()">&times;</span>
@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    <!-- Chat flotante de "Contactar" -->
+    <!-- chat de "Contactar" -->
     <div id="chat-flotante" class="chat-flotante">
         <div class="chat-flotante-header">
             <div class="chat-flotante-header-info">

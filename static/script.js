@@ -80,6 +80,13 @@ function abrirPublicacionRelacionada(elemento, tipo, id) {
         return;
     }
 
+    const modalActual = elemento.closest(".modal-detalle-publicacion-overlay");
+    if (modalActual) {
+        modalActual.remove();
+        mostrarDetalleModal(tipo, id);
+        return;
+    }
+
     irADetallePublicacion(tipo, id);
 }
 
@@ -1904,9 +1911,71 @@ function marcarConcretada(categoria, id, valor) {
 // EDICION Y ELIMINACION DESDE PERFIL 
 let accionDesdePerfil = false;
 
-// Lleva a la pantalla de detalle completo 
+// Abre el detalle de una publicación como modal, por encima de todo el contenido
+// (usado desde "Mis publicaciones" en el perfil)
 function verDetallePublicacion(categoria, id) {
-    irADetallePublicacion(categoria, id);
+    mostrarDetalleModal(categoria, id);
+}
+
+function mostrarDetalleModal(tipo, id) {
+    fetch("/api/publicaciones")
+        .then(res => res.json())
+        .then(publicaciones => {
+            const p = publicaciones.find(item =>
+                item.tipo === tipo && Number(item.id) === Number(id)
+            );
+
+            if (!p) {
+                window.location.href = `/publicacion/${tipo}/${id}`;
+                return;
+            }
+
+            const overlay = document.createElement("div");
+            overlay.className = "modal-detalle-publicacion-overlay";
+            overlay.innerHTML = `<div class="modal-detalle-publicacion-box">${construirDetalleEmbebido(p)}</div>`;
+            document.body.appendChild(overlay);
+
+            const caja = overlay.querySelector(".modal-detalle-publicacion-box");
+            activarVerMasDescripcion(caja, p.titulo, p.descripcion);
+
+            // En este modal (Mis publicaciones) no se muestra "Más publicaciones de..."
+            const masPublicaciones = overlay.querySelector(".detalle-embebido-mas-publicaciones");
+            if (masPublicaciones) masPublicaciones.remove();
+
+            function cerrarModal() {
+                overlay.remove();
+                document.removeEventListener("keydown", escListener);
+            }
+            function escListener(event) {
+                if (event.key === "Escape") cerrarModal();
+            }
+
+            overlay.addEventListener("click", event => {
+                if (event.target === overlay) cerrarModal();
+            });
+            document.addEventListener("keydown", escListener);
+
+            const botonCerrar = overlay.querySelector(".detalle-embebido-cerrar");
+            if (botonCerrar) botonCerrar.addEventListener("click", cerrarModal);
+
+            const botonContactar = overlay.querySelector(".detalle-embebido-contactar");
+            if (botonContactar) {
+                botonContactar.addEventListener("click", event => {
+                    event.stopPropagation();
+                    abrirModalContacto(
+                        p.user_id,
+                        p.usuario,
+                        p.tipo,
+                        p.id,
+                        p.titulo,
+                        p.imagen || null
+                    );
+                });
+            }
+        })
+        .catch(() => {
+            window.location.href = `/publicacion/${tipo}/${id}`;
+        });
 }
 
 // ACCIONES DESDE LA PANTALLA DE DETALLE

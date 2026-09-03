@@ -1102,7 +1102,7 @@ button:hover {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 1000;
+  z-index: 1100;
   align-items: center;
   justify-content: center;
 }
@@ -1177,6 +1177,46 @@ button:hover {
 
 .detalle-publicacion-btn-eliminar {
   margin-left: auto;
+}
+
+/* Modal que trae al frente el detalle de una publicación (ej. desde "Mis publicaciones" en el perfil) */
+.modal-detalle-publicacion-overlay {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 950;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  box-sizing: border-box;
+}
+
+.modal-detalle-publicacion-box {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+.modal-detalle-publicacion-box .detalle-embebido {
+  height: auto;
+  min-height: 320px;
+}
+
+@media (max-width: 700px) {
+  .modal-detalle-publicacion-box .detalle-embebido {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .modal-detalle-publicacion-box .detalle-embebido-imagen {
+    flex: 0 0 auto;
+    height: 200px;
+  }
 }
 
 /* Pantalla de detalle completo de una publicación */

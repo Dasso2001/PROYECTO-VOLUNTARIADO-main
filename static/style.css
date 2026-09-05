@@ -1184,7 +1184,7 @@ button:hover {
   display: flex;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(6, 10, 18, 0.94);
   z-index: 950;
   align-items: center;
   justify-content: center;

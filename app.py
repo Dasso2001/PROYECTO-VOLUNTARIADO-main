@@ -1216,6 +1216,22 @@ def mis_publicaciones():
         return jsonify({"error": "No autorizado"}), 401
 
     user_id = session['user_id']
+    usuario = User.query.get(user_id)
+
+    total_publicaciones_usuario = (
+        Donacion.query.filter_by(user_id=user_id).count()
+        + Servicio.query.filter_by(user_id=user_id).count()
+        + Ayuda.query.filter_by(user_id=user_id).count()
+    )
+
+    datos_usuario = {
+        "user_id": user_id,
+        "usuario": usuario.username,
+        "usuario_foto": usuario.foto_perfil,
+        "usuario_email": usuario.email,
+        "usuario_publicaciones": total_publicaciones_usuario,
+        "es_mia": True
+    }
 
     donaciones = Donacion.query.filter_by(user_id=user_id).order_by(Donacion.fecha_creacion.desc()).all()
     servicios = Servicio.query.filter_by(user_id=user_id).order_by(Servicio.fecha_creacion.desc()).all()
@@ -1226,21 +1242,24 @@ def mis_publicaciones():
             {
                 "id": d.id, "titulo": d.titulo, "descripcion": d.descripcion,
                 "ubicacion": d.ubicacion, "categoria": d.categoria, "imagen": d.imagen,
-                "concretada": bool(d.concretada), "fecha_creacion": d.fecha_creacion
+                "concretada": bool(d.concretada), "fecha_creacion": d.fecha_creacion,
+                "tipo": "donacion", **datos_usuario
             } for d in donaciones
         ],
         "servicios": [
             {
                 "id": s.id, "titulo": s.titulo, "descripcion": s.descripcion,
                 "ubicacion": s.ubicacion, "categoria": s.categoria, "contacto": s.contacto, "imagen": s.imagen,
-                "concretada": bool(s.concretada), "fecha_creacion": s.fecha_creacion
+                "concretada": bool(s.concretada), "fecha_creacion": s.fecha_creacion,
+                "tipo": "servicio", **datos_usuario
             } for s in servicios
         ],
         "ayuda": [
             {
                 "id": a.id, "titulo": a.titulo, "descripcion": a.descripcion,
                 "ubicacion": a.ubicacion, "categoria": a.categoria, "contacto": a.contacto, "imagen": a.imagen,
-                "concretada": bool(a.concretada), "fecha_creacion": a.fecha_creacion, "urgente": bool(a.urgente)
+                "concretada": bool(a.concretada), "fecha_creacion": a.fecha_creacion, "urgente": bool(a.urgente),
+                "tipo": "ayuda", **datos_usuario
             } for a in ayudas
         ]
     })

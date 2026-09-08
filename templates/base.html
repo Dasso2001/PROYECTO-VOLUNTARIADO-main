@@ -108,7 +108,9 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% if category != 'aviso_reporte' %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endif %}
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
@@ -117,6 +119,18 @@
             </div>
         </div>
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% set avisos_reporte = [] %}
+        {% for category, message in messages %}
+            {% if category == 'aviso_reporte' %}
+                {% set _ = avisos_reporte.append(message) %}
+            {% endif %}
+        {% endfor %}
+        {% if avisos_reporte %}
+            <script id="avisos-reporte-data" type="application/json">{{ avisos_reporte | tojson }}</script>
+        {% endif %}
+    {% endwith %}
 
     <script src="{{ url_for('static', filename='script.js') }}?v={{ asset_version('script.js') }}"></script>
 

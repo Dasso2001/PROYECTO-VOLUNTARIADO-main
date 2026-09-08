@@ -3,12 +3,12 @@ const CATEGORIAS_DONACION = ["Ropa", "Calzado", "Muebles", "Electrónica", "Alim
 const CATEGORIAS_SERVICIO = ["Plomería", "Electricista", "Jardinería", "Belleza", "Limpieza", "Clases particulares", "Otros"];
 const CATEGORIAS_AYUDA = ["Emergencias", "Transporte", "Adultos mayores", "Mascotas", "Medicamentos", "Acompañamiento", "Otros"];
 
-// Genera las opciones de un <select> a partir de una lista de categorías y la categoría actual
+
 function opcionesCategorias(lista, categoriaActual) {
     return lista.map(c => `<option value="${c}" ${c === categoriaActual ? "selected" : ""}>${c}</option>`).join("");
 }
 
-// Imagen predeterminada según el tipo de publicación, para cuando el usuario no sube ninguna
+// Imagen predeterminada 
 function imagenPorDefecto(tipo) {
     if (tipo === "ayuda") return "/static/imagenes/default_ayuda.webp";
     if (tipo === "servicio") return "/static/imagenes/default_servicio.webp";
@@ -16,7 +16,7 @@ function imagenPorDefecto(tipo) {
     return null;
 }
 
-// Abre el detalle de una publicación. En "ver donaciones/servicios/ayuda"
+// Abre el detalle de una publicación
 function irADetallePublicacion(tipo, id) {
     if (document.querySelector(".dashboard-page")) {
         const rutasSeccion = {
@@ -66,7 +66,7 @@ function irADetallePublicacion(tipo, id) {
     mostrarDetalleReemplazando(busqueda, tipo, id);
 }
 
-// Abre una publicación relacionada
+
 function abrirPublicacionRelacionada(elemento, tipo, id) {
     const panel = elemento.closest(".panel-lista");
     if (panel) {
@@ -89,8 +89,7 @@ function abrirPublicacionRelacionada(elemento, tipo, id) {
 
     irADetallePublicacion(tipo, id);
 }
-
-// "Ver donaciones/servicios/ayuda": abre el detalle dentro del mismo recuadro 
+ 
 function mostrarDetalleEnCaja(panel, tipo, id) {
     const panelInner = panel.querySelector(".panel-lista-inner");
     const caja = panel.querySelector(".detalle-publicacion-box");
@@ -217,7 +216,7 @@ function mostrarDetalleReemplazando(campo, tipo, id) {
         });
 }
 
-// Convierte una fecha en texto relativo tipo "hace 2 días"
+// Convierte una fecha en texto "hace 2 días"
 function tiempoRelativo(fechaISO) {
     if (!fechaISO) return "";
     const segundos = (Date.now() - new Date(fechaISO).getTime()) / 1000;
@@ -234,7 +233,7 @@ function tiempoRelativo(fechaISO) {
     return `Publicado hace ${meses} meses`;
 }
 
-function construirDetalleEmbebido(p) {
+function construirDetalleEmbebido(p, opciones = {}) {
     const imagen = p.imagen
         ? `/static/uploads/${p.imagen}`
         : imagenPorDefecto(p.tipo);
@@ -245,7 +244,7 @@ function construirDetalleEmbebido(p) {
             ? "Servicio"
             : "Ayuda";
 
-    const botonesPropios = p.es_mia
+    const botonesPropios = (p.es_mia && !opciones.ocultarAcciones)
         ? `<div class="tarjeta-boton detalle-embebido-botones">
                 <button class="btn-contacto" onclick="event.stopPropagation(); marcarConcretadaDesdeDetalle(this)"
                     data-tipo="${p.tipo}" data-id="${p.id}" data-concretada="${p.concretada ? "true" : "false"}">
@@ -280,6 +279,8 @@ function construirDetalleEmbebido(p) {
         : `<div class="detalle-pagina-usuario-acciones">
                 ${botonCorreo}
                 <button type="button" class="btn-contacto detalle-embebido-contactar">Escribir</button>
+                <button type="button" class="btn-reportar" title="Reportar esta publicación" aria-label="Reportar esta publicación"
+                    onclick="event.stopPropagation(); reportarDesdeDetalle(this)">Reportar</button>
            </div>`;
 
     const fecha = tiempoRelativo(p.fecha_creacion);
@@ -357,7 +358,7 @@ function escapeHtml(str) {
         .replace(/>/g, "&gt;");
 }
 
-// Modal genérico para mostrar contenido largo 
+// mostrar contenido largo 
 function abrirModalDescripcion(titulo, descripcion) {
     const overlay = document.getElementById("modal-detalle-overlay");
     const contenido = document.getElementById("modal-detalle-contenido");
@@ -376,7 +377,7 @@ function cerrarModalDetalle() {
     if (overlay) overlay.classList.remove("activo");
 }
 
-// Límite de caracteres para mostrar la descripción en la caja de detalle antes de mostrar el botón "Ver más"
+// Límite de la descripcion en la caja de detalle antes de mostrar el botón "Ver más"
 const LIMITE_DESCRIPCION_CAJA = 170;
 
 function activarVerMasDescripcion(contenedor, titulo, descripcionCompleta) {
@@ -488,8 +489,7 @@ function toggleMasPublicacionesCard(boton) {
     boton.textContent = expandida ? "Ocultar" : "Ver";
 }
 
-// Tarjeta chica (imagen + botón "Ver") de "Más publicaciones de {usuario}" dentro de la caja de detalle 
-// (ver donaciones/servicios/ayuda). Al tocar la imagen o el botón, abre esa publicación en la misma caja.
+
 function htmlTarjetaMasPublicacionesMini(p) {
     const imagenSrc = p.imagen ? `/static/uploads/${p.imagen}` : imagenPorDefecto(p.tipo);
 
@@ -666,7 +666,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(() => {});
     }
 
-    // Pantalla de detalle: chat embebido con el dueño de la publicación
+    // Pantalla de detalle: chat con el usuario
     inicializarChatDetalle();
 
     // Carga de datos para Donaciones
@@ -914,7 +914,7 @@ function contactarCorreoDesdeDetalle(boton) {
     abrirModalCorreo(parseInt(d.usuarioId, 10), d.usuarioNombre, d.titulo || null);
 }
 
-// Modal para mandar un correo real (sin depender de una app de mail instalada)
+// mandar un correo  
 let correoModalActual = null;
 
 function abrirModalCorreo(destinatarioId, nombreUsuario, publicacionTitulo) {
@@ -1329,7 +1329,7 @@ function cargarPublicacionesGlobales(termino = "", distrito = "", orden = "recie
             const contenedor = document.getElementById("lista-publicaciones");
             if (!contenedor) return;
 
-            // "Últimas publicaciones" (dashboard) ver publicaciones de otros usuarios, no las propias
+            // "Últimas publicaciones" (dashboard) ver publicaciones de otros usuarios
             publicaciones = publicaciones.filter(p => !p.es_mia);
 
             if (distrito) {
@@ -1414,13 +1414,13 @@ function cargarCantidadMensajes() {
 
 let mensajesPorCategoria = { donacion: {}, servicio: {}, ayuda: {} };
 let categoriaSeleccionada = null;
-let claveSeleccionada = null; // usuario + publicación puntual
+let claveSeleccionada = null; 
 
 // Convierte la fecha a horario 
 function formatearFechaArgentina(fecha) {
     if (!fecha) return "";
     const d = new Date(fecha);
-    if (isNaN(d.getTime())) return fecha; // si no se puede parsear, muestra el texto tal cual
+    if (isNaN(d.getTime())) return fecha; 
 
     return d.toLocaleString("es-AR", {
         timeZone: "America/Argentina/Buenos_Aires",
@@ -1823,6 +1823,7 @@ function etiquetaEventoTexto(evento) {
     if (evento === "concretada") return "se marcó como concretada";
     if (evento === "no_concretada") return "se marcó como no concretada";
     if (evento === "eliminada") return "se eliminó";
+    if (evento === "eliminada_reporte") return "se eliminó por reportes";
     return evento;
 }
 
@@ -1917,8 +1918,7 @@ function marcarConcretada(categoria, id, valor) {
 // EDICION Y ELIMINACION DESDE PERFIL 
 let accionDesdePerfil = false;
 
-// Abre el detalle de una publicación como modal, por encima de todo el contenido
-// (usado desde "Mis publicaciones" en el perfil)
+// Abre el detalle de una publicación 
 function verDetallePublicacion(categoria, id) {
     mostrarDetalleModal(categoria, id);
 }
@@ -1943,7 +1943,7 @@ function mostrarDetalleModal(tipo, id) {
     const caja = overlay.querySelector(".modal-detalle-publicacion-box");
     activarVerMasDescripcion(caja, p.titulo, p.descripcion);
 
-    // En este modal (Mis publicaciones) no se muestra "Más publicaciones de..."
+    // Quita el botón de "Ver más publicaciones" 
     const masPublicaciones = overlay.querySelector(".detalle-embebido-mas-publicaciones");
     if (masPublicaciones) masPublicaciones.remove();
 
@@ -2079,8 +2079,7 @@ function enviarMensajeDetalle() {
         .catch(() => alert("No se pudo enviar el mensaje. Probá de nuevo."));
 }
 
-// Marca una publicación como concretada/no concretada desde la pantalla de detalle
-// y recarga la página para reflejar el cambio 
+// Marca una publicación como concretada/no concretada 
 function marcarConcretadaDesdeDetalle(boton) {
     const d = boton.closest(".detalle-pagina-info").dataset;
     const valor = d.concretada === "true" ? "false" : "true";
@@ -2120,6 +2119,33 @@ function eliminarDesdeDetalle(boton) {
     }
 }
 
+// Reporta la publicación 
+function reportarDesdeDetalle(boton) {
+    const d = boton.closest(".detalle-pagina-info").dataset;
+
+    if (!confirm("¿Seguro que querés reportar esta publicación?")) return;
+
+    fetch(`/publicacion/reportar/${d.tipo}/${d.id}`, { method: "POST" })
+        .then(res => res.json().then(data => ({ status: res.status, data })))
+        .then(({ status, data }) => {
+            if (status === 409) {
+                alert(data.error || "Ya reportaste esta publicación.");
+                return;
+            }
+            if (status !== 200) {
+                alert(data.error || "No se pudo reportar la publicación.");
+                return;
+            }
+            if (data.eliminada) {
+                alert("Gracias por avisar. La publicación fue eliminada por acumular demasiados reportes.");
+                window.location.href = "/dashboard";
+            } else {
+                alert("Publicación reportada. Gracias por avisarnos.");
+            }
+        })
+        .catch(() => alert("No se pudo reportar la publicación."));
+}
+
 // Ícono de chat de la pantalla de detalle
 function contactarDesdeDetalle(boton) {
     const d = boton.closest(".detalle-pagina-card").querySelector(".detalle-pagina-info").dataset;
@@ -2157,3 +2183,92 @@ function eliminarDesdePerfil(categoria, id) {
         eliminarAyuda(id);
     }
 }
+// Aviso de publicación eliminada por reportes 
+let avisoReporteOverlayActual = null;
+
+function _limpiarImagenAvisoReporte(nombreImagen) {
+    if (!nombreImagen) return;
+    fetch("/api/aviso-reporte/limpiar-imagen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imagen: nombreImagen })
+    }).catch(() => {});
+}
+
+function mostrarSiguienteAvisoReporte() {
+    if (avisoReporteOverlayActual) {
+        avisoReporteOverlayActual.remove();
+        avisoReporteOverlayActual = null;
+    }
+
+    if (colaAvisosReporte.length === 0) return;
+
+    const aviso = colaAvisosReporte.shift();
+
+    
+    const p = {
+        tipo: aviso.tipo,
+        titulo: aviso.titulo,
+        descripcion: aviso.descripcion,
+        imagen: aviso.imagen,
+        ubicacion: aviso.ubicacion,
+        contacto: aviso.contacto,
+        categoria: aviso.categoria_item,
+        urgente: aviso.urgente,
+        concretada: false,
+        fecha_creacion: aviso.fecha_publicacion,
+        usuario: aviso.usuario,
+        usuario_foto: aviso.usuario_foto,
+        usuario_publicaciones: aviso.usuario_publicaciones,
+        user_id: null,
+        id: null,
+        es_mia: true
+    };
+
+    const overlay = document.createElement("div");
+    overlay.className = "modal-detalle-publicacion-overlay";
+    overlay.innerHTML = `
+        <div class="modal-detalle-publicacion-box">
+            <div class="aviso-reporte-banner">Esta publicación fue eliminada por acumular demasiados reportes</div>
+            ${construirDetalleEmbebido(p, { ocultarAcciones: true })}
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    avisoReporteOverlayActual = overlay;
+
+    const caja = overlay.querySelector(".modal-detalle-publicacion-box");
+    activarVerMasDescripcion(caja, p.titulo, p.descripcion);
+
+    const masPublicaciones = overlay.querySelector(".detalle-embebido-mas-publicaciones");
+    if (masPublicaciones) masPublicaciones.remove();
+
+    function avanzar() {
+        _limpiarImagenAvisoReporte(aviso.imagen);
+        document.removeEventListener("keydown", escListener);
+        mostrarSiguienteAvisoReporte();
+    }
+    function escListener(event) {
+        if (event.key === "Escape") avanzar();
+    }
+
+    overlay.addEventListener("click", event => {
+        if (event.target === overlay) avanzar();
+    });
+    document.addEventListener("keydown", escListener);
+
+    const botonCerrar = overlay.querySelector(".detalle-embebido-cerrar");
+    if (botonCerrar) botonCerrar.addEventListener("click", avanzar);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const datos = document.getElementById("avisos-reporte-data");
+    if (!datos) return;
+
+    try {
+        colaAvisosReporte = JSON.parse(datos.textContent) || [];
+    } catch (e) {
+        colaAvisosReporte = [];
+    }
+
+    mostrarSiguienteAvisoReporte();
+});

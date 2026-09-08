@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, make_response
-from models.user import db, User, Donacion, Servicio, Ayuda, Mensaje, Actividad
+from models.user import db, User, Donacion, Servicio, Ayuda, Mensaje, Actividad, Reporte
 import os
 import uuid
 import secrets
@@ -124,6 +124,9 @@ CATEGORIAS_DONACION = ["Ropa", "Calzado", "Muebles", "Electrónica", "Alimentos"
 CATEGORIAS_SERVICIO = ["Plomería", "Electricista", "Jardinería", "Belleza", "Limpieza", "Clases particulares", "Otros"]
 CATEGORIAS_AYUDA = ["Emergencias", "Transporte", "Adultos mayores", "Mascotas", "Medicamentos", "Acompañamiento", "Otros"]
 
+# cantidad de reportes a partir de la cual una publicación se elimina automáticamente
+LIMITE_REPORTES = 10
+
 
 def _migrar_columna_categoria():
     from sqlalchemy import text
@@ -153,6 +156,44 @@ def _migrar_columna_urgente():
         db.session.commit()
 
 
+def _migrar_columna_reportes():
+    from sqlalchemy import text
+    with app.app_context():
+        for tabla in ("donaciones", "servicios", "ayuda"):
+            columnas = [fila[1] for fila in db.session.execute(text(f"PRAGMA table_info({tabla})")).fetchall()]
+            if "reportes" not in columnas:
+                db.session.execute(text(f"ALTER TABLE {tabla} ADD COLUMN reportes INTEGER DEFAULT 0"))
+        db.session.commit()
+
+
+def _migrar_columna_notificada():
+    from sqlalchemy import text
+    with app.app_context():
+        columnas = [fila[1] for fila in db.session.execute(text("PRAGMA table_info(actividad)")).fetchall()]
+        if "notificada" not in columnas:
+            db.session.execute(text("ALTER TABLE actividad ADD COLUMN notificada BOOLEAN DEFAULT 0"))
+        db.session.commit()
+
+
+def _migrar_columnas_snapshot_actividad():
+    from sqlalchemy import text
+    with app.app_context():
+        columnas = [fila[1] for fila in db.session.execute(text("PRAGMA table_info(actividad)")).fetchall()]
+        columnas_nuevas = {
+            "descripcion": "TEXT",
+            "imagen": "VARCHAR(200)",
+            "ubicacion": "VARCHAR(200)",
+            "contacto": "VARCHAR(200)",
+            "categoria_item": "VARCHAR(50)",
+            "urgente": "BOOLEAN DEFAULT 0",
+            "fecha_publicacion": "DATETIME"
+        }
+        for nombre, tipo_sql in columnas_nuevas.items():
+            if nombre not in columnas:
+                db.session.execute(text(f"ALTER TABLE actividad ADD COLUMN {nombre} {tipo_sql}"))
+        db.session.commit()
+
+
 @app.context_processor
 def _inyectar_usuario_actual():
     if 'user_id' in session:
@@ -166,12 +207,21 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-def _registrar_actividad(user_id, categoria, titulo, evento):
+def _registrar_actividad(user_id, categoria, titulo, evento, descripcion=None, imagen=None,
+                          ubicacion=None, contacto=None, categoria_item=None, urgente=False,
+                          fecha_publicacion=None):
     db.session.add(Actividad(
         user_id=user_id,
         categoria=categoria,
         titulo=titulo,
-        evento=evento
+        evento=evento,
+        descripcion=descripcion,
+        imagen=imagen,
+        ubicacion=ubicacion,
+        contacto=contacto,
+        categoria_item=categoria_item,
+        urgente=urgente,
+        fecha_publicacion=fecha_publicacion
     ))
 
 
@@ -259,6 +309,40 @@ def login():
         if user and user.check_password(password):
             session['user_id'] = user.id
             session['username'] = user.username
+
+            pendientes = Actividad.query.filter_by(
+                user_id=user.id, evento="eliminada_reporte", notificada=False
+            ).all()
+
+            if pendientes:
+                total_publicaciones_usuario = (
+                    Donacion.query.filter_by(user_id=user.id).count()
+                    + Servicio.query.filter_by(user_id=user.id).count()
+                    + Ayuda.query.filter_by(user_id=user.id).count()
+                )
+
+            for aviso in pendientes:
+                flash(
+                    {
+                        "tipo": aviso.categoria,
+                        "titulo": aviso.titulo,
+                        "descripcion": aviso.descripcion,
+                        "imagen": aviso.imagen,
+                        "ubicacion": aviso.ubicacion,
+                        "contacto": aviso.contacto,
+                        "categoria_item": aviso.categoria_item,
+                        "urgente": bool(aviso.urgente),
+                        "fecha_publicacion": aviso.fecha_publicacion.isoformat() if aviso.fecha_publicacion else None,
+                        "usuario": user.username,
+                        "usuario_foto": user.foto_perfil,
+                        "usuario_publicaciones": total_publicaciones_usuario
+                    },
+                    "aviso_reporte"
+                )
+                aviso.notificada = True
+            if pendientes:
+                db.session.commit()
+
             return redirect(url_for('dashboard'))
         else:
             return render_template('login.html', error="Credenciales inválidas")
@@ -495,6 +579,72 @@ def ver_publicacion(tipo, id):
         fecha_relativa=tiempo_relativo(item.fecha_creacion),
         total_publicaciones_usuario=total_publicaciones_usuario
     )
+
+
+@app.route("/api/aviso-reporte/limpiar-imagen", methods=["POST"])
+def limpiar_imagen_aviso_reporte():
+    if 'user_id' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    nombre = data.get("imagen")
+    if nombre:
+        nombre_seguro = secure_filename(nombre)
+        path_imagen = os.path.join(app.config["UPLOAD_FOLDER"], nombre_seguro)
+        if os.path.exists(path_imagen):
+            os.remove(path_imagen)
+
+    return jsonify({"ok": True})
+
+
+@app.route("/publicacion/reportar/<tipo>/<int:id>", methods=["POST"])
+def reportar_publicacion(tipo, id):
+    if 'user_id' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+
+    modelos = {"donacion": Donacion, "servicio": Servicio, "ayuda": Ayuda}
+    modelo = modelos.get(tipo)
+    if not modelo:
+        return jsonify({"error": "Tipo de publicación inválido"}), 400
+
+    item = modelo.query.get_or_404(id)
+    user_id = session['user_id']
+
+    if item.user_id == user_id:
+        return jsonify({"error": "No podés reportar tu propia publicación"}), 403
+
+    ya_reporto = Reporte.query.filter_by(tipo=tipo, publicacion_id=id, user_id=user_id).first()
+    if ya_reporto:
+        return jsonify({"error": "Ya reportaste esta publicación", "reportes": item.reportes or 0}), 409
+
+    db.session.add(Reporte(tipo=tipo, publicacion_id=id, user_id=user_id))
+    item.reportes = (item.reportes or 0) + 1
+
+    if item.reportes >= LIMITE_REPORTES:
+        Reporte.query.filter_by(tipo=tipo, publicacion_id=id).delete()
+        _registrar_actividad(
+            item.user_id, tipo, item.titulo, "eliminada_reporte",
+            descripcion=item.descripcion, imagen=item.imagen,
+            ubicacion=item.ubicacion,
+            contacto=getattr(item, "contacto", None),
+            categoria_item=item.categoria,
+            urgente=bool(getattr(item, "urgente", False)),
+            fecha_publicacion=item.fecha_creacion
+        )
+        db.session.delete(item)
+        db.session.commit()
+        return jsonify({
+            "mensaje": "La publicación acumuló demasiados reportes y fue eliminada",
+            "eliminada": True
+        })
+
+    db.session.commit()
+    return jsonify({
+        "mensaje": "Publicación reportada con éxito",
+        "eliminada": False,
+        "reportes": item.reportes
+    })
+
 
 @app.route('/ayuda/ver')
 def ver_ayuda():
@@ -1325,6 +1475,9 @@ _migrar_columna_categoria()
 _migrar_columna_foto_perfil()
 _migrar_columna_urgente()
 _migrar_columna_reset_token()
+_migrar_columna_reportes()
+_migrar_columna_notificada()
+_migrar_columnas_snapshot_actividad()
 
 if __name__ == '__main__':
     app.run(debug=True)

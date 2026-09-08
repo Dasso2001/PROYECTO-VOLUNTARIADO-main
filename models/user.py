@@ -59,6 +59,7 @@ class Donacion(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     concretada = db.Column(db.Boolean, default=False)
     fecha_concretada = db.Column(db.DateTime, nullable=True)
+    reportes = db.Column(db.Integer, default=0)
     
     def to_dict(self):
         return {
@@ -85,6 +86,7 @@ class Servicio(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     concretada = db.Column(db.Boolean, default=False)
     fecha_concretada = db.Column(db.DateTime, nullable=True)
+    reportes = db.Column(db.Integer, default=0)
     
     def to_dict(self):
         return {
@@ -99,14 +101,34 @@ class Servicio(db.Model):
             'usuario': self.usuario.username
         }
 
+class Reporte(db.Model):
+    __tablename__ = 'reportes'
+    id = db.Column(db.Integer, primary_key=True)
+    tipo = db.Column(db.String(20), nullable=False)
+    publicacion_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('tipo', 'publicacion_id', 'user_id', name='uq_reporte_usuario_publicacion'),
+    )
+
 class Actividad(db.Model):
     __tablename__ = 'actividad'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     categoria = db.Column(db.String(20), nullable=False) 
     titulo = db.Column(db.String(200), nullable=False)
-    evento = db.Column(db.String(20), nullable=False)  
+    evento = db.Column(db.String(30), nullable=False)  
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    notificada = db.Column(db.Boolean, default=False)
+    descripcion = db.Column(db.Text, nullable=True)
+    imagen = db.Column(db.String(200), nullable=True)
+    ubicacion = db.Column(db.String(200), nullable=True)
+    contacto = db.Column(db.String(200), nullable=True)
+    categoria_item = db.Column(db.String(50), nullable=True)
+    urgente = db.Column(db.Boolean, default=False)
+    fecha_publicacion = db.Column(db.DateTime, nullable=True)
 
 class Ayuda(db.Model):
     __tablename__ = 'ayuda'
@@ -122,6 +144,7 @@ class Ayuda(db.Model):
     concretada = db.Column(db.Boolean, default=False)
     fecha_concretada = db.Column(db.DateTime, nullable=True)
     urgente = db.Column(db.Boolean, default=False)
+    reportes = db.Column(db.Integer, default=0)
     
     def to_dict(self):
         return {

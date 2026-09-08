@@ -171,6 +171,28 @@ button {
   overflow-y: auto;
 }
 
+.alert {
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+
+.alert-success {
+  background: rgba(46, 204, 113, 0.12);
+  border-color: rgba(46, 204, 113, 0.4);
+  color: #1e8449;
+}
+
+.alert-danger {
+  background: rgba(231, 76, 60, 0.12);
+  border-color: rgba(231, 76, 60, 0.4);
+  color: #c0392b;
+}
+
+
 .welcome-message {
   text-align: center;
   color: #666;
@@ -186,7 +208,7 @@ button {
   font-size: 16px;
 }
 
-/* imagenes clickeables (Donaciones / Servicios / Ayuda) */
+/* imagenes clicks (Donaciones / Servicios / Ayuda) */
 .dashboard-cards {
   display: flex;
   flex-wrap: wrap;
@@ -236,7 +258,7 @@ select {
   box-sizing: border-box;
 }
 
-/* Checkbox (ej: "Marcar como urgente") */
+/* Marcar como urgente */
 .campo-checkbox {
   display: flex;
   align-items: center;
@@ -305,7 +327,7 @@ button:hover {
   display: block;
 }
 
-/* Contenedor de la imagen + ícono de chat flotante */
+/* Contenedor de la imagen + ícono de chat */
 .tarjeta-imagen-wrap {
   position: relative;
   margin-bottom: 10px;
@@ -410,10 +432,7 @@ button:hover {
   border-radius: 12px;
 }
 
-/* Resalta la tarjeta completa cuando la solicitud de ayuda es urgente,
-   para que "salte" a la vista además de ir primera en el orden de la lista.
-   También se usa en "Últimas publicaciones" del dashboard, pero ahí solo
-   resalta el borde: el orden ahí sigue siendo por fecha, sin prioridad. */
+
 .servicios_ayuda.tarjeta-urgente,
 .publicacion-global.tarjeta-urgente {
   border: 2px solid #e63946;
@@ -711,8 +730,7 @@ button:hover {
   box-sizing: border-box;
 }
 
-/* Titulo de las paginas "ver" (Donaciones/Servicios/Ayuda/Busqueda) y de
-   los formularios de publicar (Donación/Servicio/Ayuda) */
+
 .ver-page > h2,
 .titulo-subrayado {
   position: relative;
@@ -1096,7 +1114,16 @@ button:hover {
 .modal-correo-estado.error { color: #ff8080; }
 .modal-correo-estado.ok { color: #7fdf9f; }
 
-/* Modal genérico para ver contenido largo (ej. descripción completa) */
+.aviso-reporte-banner {
+  background: rgba(231, 76, 60, 0.15);
+  color: #ffb3a7;
+  border-bottom: 1px solid rgba(231, 76, 60, 0.4);
+  padding: 12px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 .modal-detalle-overlay {
   display: none;
   position: fixed;
@@ -1179,7 +1206,7 @@ button:hover {
   margin-left: auto;
 }
 
-/* Modal que trae al frente el detalle de una publicación (ej. desde "Mis publicaciones" en el perfil) */
+/* detalle de una publicacion */
 .modal-detalle-publicacion-overlay {
   display: flex;
   position: fixed;
@@ -1219,7 +1246,7 @@ button:hover {
   }
 }
 
-/* Pantalla de detalle completo de una publicación */
+/* Pantalla de detalle completo de una publicacion */
 .detalle-pagina {
   width: 100%;
   max-width: 900px;
@@ -1312,7 +1339,7 @@ button:hover {
   white-space: nowrap;
 }
 
-/* Fila de datos rápidos */
+/* Fila de datos */
 .detalle-pagina-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1341,8 +1368,7 @@ button:hover {
   line-height: 1.6;
 }
 
-/* Ficha del usuario que publicó, con avatar, cantidad de publicaciones y
-   botón para escribir */
+
 .detalle-pagina-usuario {
   display: flex;
   align-items: center;
@@ -1424,6 +1450,23 @@ button:hover {
   border-color: #534ab7;
 }
 
+.btn-reportar {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 90, 90, 0.4);
+  background: rgba(255, 90, 90, 0.08);
+  color: #ff8a8a;
+  cursor: pointer;
+  padding: 8px 16px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-reportar:hover {
+  background: #e14b4b;
+  border-color: #e14b4b;
+  color: #fff;
+}
+
 @media (max-width: 1050px) {
   .detalle-pagina-layout {
     flex-direction: column;
@@ -1445,7 +1488,7 @@ button:hover {
   }
 }
 
-/* Más publicaciones del mismo usuario, debajo del detalle. */
+/* Más publicaciones */
 .mas-publicaciones-usuario {
   margin-top: 25px;
   display: flex;
@@ -2680,7 +2723,7 @@ button:hover {
   margin: 0;
 }
 
-/* Búsqueda avanzada */
+/* Busqueda avanzada */
 .lista-publicaciones {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2775,7 +2818,7 @@ button:hover {
   }
 }
 
-/* Estructura interna de las tarjetas horizontales */
+
 #lista > .donacion,
 #lista-servicios > .servicios_ayuda,
 #lista-ayuda > .servicios_ayuda,
@@ -3124,7 +3167,7 @@ button:hover {
   margin-bottom: 3px;
 }
 
-/* Vista previa de la publicación (imagen + título) */
+/* Vista previa de la publicacion */
 .chat-flotante-mensajes .chat-publicacion-preview {
   background: rgba(27, 42, 65, 0.06);
   margin: 0 0 8px 0;
@@ -3224,8 +3267,7 @@ button:hover {
     height: 65vh;
   }
 }
-/* DASHBOARD (inicio): paneles de impacto (Donaciones, Oficios,
-   Ayuda) + caja de últimas publicaciones */
+/* DASHBOARD */
 .dashboard-welcome {
   flex: 0 0 auto;
   text-align: left;
